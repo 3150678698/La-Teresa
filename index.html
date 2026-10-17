@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#111111">
+<title>LA TERESA | Gestión de finca</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f4f4f4;color:#171717;font-family:Arial,sans-serif}
+header{background:#111;color:white;padding:22px 18px}
+header h1{margin:0;font-size:27px;letter-spacing:3px}
+header p{color:#ccc;margin:7px 0 0;font-size:13px}
+main{max-width:850px;margin:auto;padding:16px}
+h2{font-size:21px}
+.modules{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.module{background:white;border:1px solid #ddd;border-radius:12px;padding:17px 12px;text-align:left;color:#171717;font-size:15px;font-weight:bold}
+.module span{display:block;font-size:25px;margin-bottom:10px}
+.module.active{background:#171717;color:white}
+.panel{background:white;border:1px solid #ddd;border-radius:12px;padding:16px;margin-top:18px}
+label{display:block;font-size:13px;font-weight:bold;margin:13px 0 6px}
+input,select,textarea{width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;font-size:16px;background:white}
+button{cursor:pointer}
+.primary{background:#111;color:white;border:0;border-radius:8px;padding:13px 16px;font-weight:bold;margin-top:15px;width:100%}
+.secondary{background:white;border:1px solid #aaa;border-radius:8px;padding:10px}
+.record{border:1px solid #ddd;border-radius:9px;padding:12px;margin-top:10px;overflow-wrap:anywhere}
+.record h3{margin:0 0 8px}
+.muted{color:#666;font-size:13px}
+.hidden{display:none}
+footer{text-align:center;padding:25px;color:#666;font-size:12px}
+@media(min-width:600px){.modules{grid-template-columns:repeat(3,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<style>
+.lt-alertas{max-width:850px;margin:18px auto;padding:0 16px}
+.lt-alertas .panel{margin-top:0}
+.lt-alerta{border:1px solid #ddd;border-left:5px solid #777;border-radius:9px;padding:12px;margin:10px 0;background:#fff}
+.lt-alerta.verde{border-left-color:#23834b}
+.lt-alerta.amarillo{border-left-color:#d69b00}
+.lt-alerta.rojo{border-left-color:#c93434}
+.lt-alerta h3{margin:0 0 6px;font-size:15px}
+.lt-alerta p{margin:5px 0;font-size:13px}
+.lt-alerta button{margin-top:8px;padding:8px;border:1px solid #aaa;border-radius:7px;background:white}
+</style>
+
+<section class="lt-alertas">
+  <div class="panel">
+    <h2>🔔 Calendario reproductivo</h2>
+    <p class="muted">
+      Alertas desde 7 días antes de cada evento.
+    </p>
+    <div id="ltCalendario"></div>
+  </div>
+</section>
+
+<script>
+(function(){
+ const eventos=[
+  {dia:21,nombre:"Revisión de retorno al celo"},
+  {dia:28,nombre:"Confirmación de gestación"},
+  {dia:100,nombre:"Preparación de maternidad"},
+  {dia:107,nombre:"Traslado a maternidad"},
+  {dia:114,nombre:"Fecha probable de parto"}
+ ];
+ const clave="lateresa_eventos_confirmados";
+
+ function fechaMasDias(fecha,dias){
+  const d=new Date(fecha+"T12:00:00");
+  if(isNaN(d.getTime()))return null;
+  d.setDate(d.getDate()+dias);
+  return d;
+ }
+ function diasRestantes(fecha){
+  const hoy=new Date();
+  hoy.setHours(0,0,0,0);
+  const objetivo=new Date(fecha);
+  objetivo.setHours(0,0,0,0);
+  return Math.round((objetivo-hoy)/86400000);
+ }
+ function formato(fecha){
+  return fecha.toLocaleDateString("es-CO",{
+   day:"2-digit",month:"short",year:"numeric"
+  });
+ }
+ function textoSeguro(valor){
+  return String(valor).replace(/[&<>"']/g,c=>({
+   "&":"&amp;","<":"&lt;",">":"&gt;",
+   '"':"&quot;","'":"&#39;"
+  }[c]));
+ }
+ function leerConfirmados(){
+  try{return JSON.parse(localStorage.getItem(clave)||"{}")}
+  catch(e){return {}}
+ }
+ function dibujar(){
+  const cont=document.getElementById("ltCalendario");
+  if(!cont)return;
+  const registros=typeof readData==="function"?readData():[];
+  const inseminaciones=registros.filter(r=>
+   r.area==="Porcicultura"&&
+   r.kind==="Inseminación"&&
+   r.values&&r.values.fecha
+  );
+  if(!inseminaciones.length){
+   cont.innerHTML='<p class="muted">Registra una inseminación para generar el calendario.</p>';
+   return;
+  }
+  const confirmados=leerConfirmados();
+  const pendientes=[];
+  inseminaciones.forEach(r=>{
+   eventos.forEach(e=>{
+    const fecha=fechaMasDias(r.values.fecha,e.dia);
+    if(!fecha)return;
+    const id=r.id+"-"+e.dia;
+    if(confirmados[id])return;
+    pendientes.push({
+     id,fecha,dias:diasRestantes(fecha),
+     cerda:r.values.identificacion||"Sin identificación",
+     nombre:e.nombre
+    });
+   });
+  });
+  pendientes.sort((a,b)=>a.fecha-b.fecha);
+  if(!pendientes.length){
+   cont.innerHTML='<p class="muted">Todos los eventos están confirmados.</p>';
+   return;
+  }
+  cont.innerHTML=pendientes.map(e=>{
+   const color=e.dias<0?"rojo":e.dias<=7?"amarillo":"verde";
+   const estado=e.dias<0?
+    "Vencido hace "+Math.abs(e.dias)+" día(s)":
+    e.dias===0?"Evento programado para hoy":
+    "Faltan "+e.dias+" día(s)";
+   return '<article class="lt-alerta '+color+'">'+
+    '<h3>'+textoSeguro(e.cerda)+' · '+textoSeguro(e.nombre)+'</h3>'+
+    '<p>Fecha: '+formato(e.fecha)+'</p>'+
+    '<p><b>'+estado+'</b></p>'+
+    '<button type="button" data-confirmar="'+textoSeguro(e.id)+'">Marcar como realizado</button>'+
+    '</article>';
+  }).join("");
+  cont.querySelectorAll("[data-confirmar]").forEach(b=>{
+   b.onclick=()=>{
+    const guardados=leerConfirmados();
+    guardados[b.dataset.confirmar]=true;
+    localStorage.setItem(clave,JSON.stringify(guardados));
+    dibujar();
+   };
+  });
+ }
+ document.addEventListener("submit",()=>{
+  setTimeout(dibujar,100);
+ });
+ document.addEventListener("click",e=>{
+  if(e.target.closest("[data-delete]")){
+   setTimeout(dibujar,100);
+  }
+ });
+ dibujar();
+})();
+</script>
+
+<header>
+<h1>LA TERESA</h1>
+<p>GESTIÓN AGROPECUARIA · FINCA</p>
+</header>
+<main>
+<h2>Panel principal</h2>
+<p class="muted">Selecciona el área que deseas administrar.</p>
+<div class="modules" id="modules"></div>
+<section class="panel">
+<h2 id="sectionTitle">Porcicultura</h2>
+<p class="muted" id="sectionDescription">Control reproductivo y productivo de los cerdos.</p>
+<form id="recordForm">
+<label for="kind">Tipo de registro</label>
+<select id="kind" required>
+<option value="Cerda">Identificación de cerda</option>
+<option value="Inseminación">Inseminación</option>
+<option value="Parto">Parto</option>
+<option value="Lechones">Registro de lechones</option>
+</select>
+<div id="fields"></div>
+<button class="primary" type="submit">Guardar registro</button>
+</form>
+</section>
+<section class="panel">
+<h2>Registros guardados</h2>
+<p class="muted">Consulta los registros de este módulo en este dispositivo.</p>
+<div id="records"></div>
+<button class="secondary" id="exportBtn" type="button">Exportar copia de seguridad</button>
+</section>
+</main>
+<footer>LA TERESA · Administración de finca</footer>
+<script>
+const areas=[
+["Porcicultura","🐖","Reproducción y producción porcina"],
+["Ganadería","🐄","Control del ganado bovino"],
+["Avicultura","🐔","Control de aves y producción"],
+["Piscicultura","🐟","Control de peces y estanques"],
+["Inventario","📦","Alimentos, medicamentos e insumos"],
+["Finanzas","💰","Ingresos, gastos y costos"],
+["Actividades","📋","Tareas y labores de la finca"]
+];
+let area="Porcicultura";
+const $=id=>document.getElementById(id);
+function readData(){
+ try{return JSON.parse(localStorage.getItem("lateresa_registros")||"[]")}
+ catch(e){return []}
+}
+function saveData(data){
+ localStorage.setItem("lateresa_registros",JSON.stringify(data));
+}
+function renderModules(){
+ $("modules").innerHTML=areas.map(a=>
+ `<button class="module ${a[0]===area?"active":""}" data-area="${a[0]}"><span>${a[1]}</span>${a[0]}<small style="display:block;font-weight:normal;margin-top:6px">${a[2]}</small></button>`
+ ).join("");
+ document.querySelectorAll("[data-area]").forEach(b=>{
+ b.onclick=()=>{area=b.dataset.area;renderModules();renderForm();renderRecords()};
+ });
+}
+const fields={
+ "Porcicultura":[
+ ["Cerda",[["identificacion","Identificación / arete","text"],["raza","Raza","text"],["nacimiento","Fecha de nacimiento","date"],["estado","Estado reproductivo","select:Vacía|Gestante|Lactante|Reemplazo"],["observaciones","Observaciones","textarea"]]],
+ ["Inseminación",[["identificacion","Identificación de la cerda","text"],["fecha","Fecha de inseminación","date"],["verraco","Verraco / código de semen","text"],["servicio","Número de servicio","select:Primero|Segundo|Tercero"],["observaciones","Observaciones","textarea"]]],
+ ["Parto",[["identificacion","Identificación de la cerda","text"],["fecha","Fecha del parto","date"],["nacidosVivos","Lechones nacidos vivos","number"],["nacidosMuertos","Lechones nacidos muertos","number"],["momias","Momificados","number"],["observaciones","Observaciones","textarea"]]],
+ ["Lechones",[["identificacion","Identificación de la madre / camada","text"],["fecha","Fecha de nacimiento","date"],["cantidad","Cantidad registrada","number"],["peso","Peso promedio (kg)","number"],["observaciones","Observaciones","textarea"]]]
+ ],
+ "Ganadería":[["Animal",[["identificacion","Identificación / arete","text"],["tipo","Tipo de animal","select:Vaca|Toro|Novilla|Ternero|Ternera"],["fecha","Fecha de nacimiento","date"],["peso","Peso (kg)","number"],["observaciones","Observaciones","textarea"]]]],
+ "Avicultura":[["Lote de aves",[["identificacion","Identificación del lote","text"],["cantidad","Cantidad de aves","number"],["fecha","Fecha de ingreso","date"],["produccion","Producción de huevos / unidades","number"],["observaciones","Observaciones","textarea"]]]],
+ "Piscicultura":[["Estanque / lote",[["identificacion","Estanque o lote","text"],["especie","Especie","text"],["cantidad","Cantidad sembrada","number"],["fecha","Fecha de siembra","date"],["observaciones","Observaciones","textarea"]]]],
+ "Inventario":[["Insumo",[["identificacion","Nombre del insumo","text"],["cantidad","Cantidad","number"],["unidad","Unidad de medida","select:Kilogramos|Bultos|Litros|Unidades|Dosis"],["fecha","Fecha de registro","date"],["observaciones","Observaciones","textarea"]]]],
+ "Finanzas":[["Movimiento",[["identificacion","Concepto","text"],["tipo","Tipo de movimiento","select:Ingreso|Gasto"],["cantidad","Valor en pesos colombianos","number"],["fecha","Fecha","date"],["observaciones","Observaciones","textarea"]]]],
+ "Actividades":[["Actividad",[["identificacion","Nombre de la actividad","text"],["fecha","Fecha programada","date"],["estado","Estado","select:Pendiente|En proceso|Realizada"],["observaciones","Responsable / notas","textarea"]]]]
+};
+function renderForm(){
+ $("sectionTitle").textContent=area;
+ $("sectionDescription").textContent=areas.find(a=>a[0]===area)[2];
+ const kinds=fields[area];
+ $("kind").innerHTML=kinds.map(k=>`<option>${k[0]}</option>`).join("");
+ $("kind").onchange=drawFields;
+ drawFields();
+}
+function drawFields(){
+ const kind=$("kind").value;
+ const schema=(fields[area].find(k=>k[0]===kind)||fields[area][0])[1];
+ $("fields").innerHTML=schema.map(f=>{
+ let input;
+ if(f[2].startsWith("select:")){
+ input=`<select id="f_${f[0]}" required>${f[2].slice(7).split("|").map(v=>`<option>${v}</option>`).join("")}</select>`;
+ }else if(f[2]==="textarea"){
+ input=`<textarea id="f_${f[0]}" rows="2"></textarea>`;
+ }else{
+ input=`<input id="f_${f[0]}" type="${f[2]}" ${f[2]==="number"?'min="0" step="any"':''} ${f[0]==="identificacion"?'required':''}>`;
+ }
+ return `<label for="f_${f[0]}">${f[1]}</label>${input}`;
+ }).join("");
+}
+function renderRecords(){
+ const data=readData().filter(r=>r.area===area);
+ $("records").innerHTML=data.length?data.slice().reverse().map(r=>
+ `<article class="record"><h3>${escapeHtml(r.kind)} · ${escapeHtml(r.values.identificacion||"Sin identificación")}</h3><p class="muted">${escapeHtml(r.created)}</p>${Object.entries(r.values).map(([k,v])=>`<p><b>${escapeHtml(k)}:</b> ${escapeHtml(String(v||"—"))}</p>`).join("")}<button class="secondary" data-delete="${r.id}" type="button">Eliminar registro</button></article>`
+ ).join(""):`<p class="muted">Todavía no hay registros en ${area}.</p>`;
+ document.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>{
+ if(confirm("¿Deseas eliminar este registro?")){
+ saveData(readData().filter(r=>r.id!==b.dataset.delete));renderRecords();
+ }
+ });
+}
+function escapeHtml(s){
+ return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+$("recordForm").onsubmit=e=>{
+ e.preventDefault();
+ const kind=$("kind").value;
+ const schema=fields[area].find(k=>k[0]===kind)[1];
+ const values={};
+ schema.forEach(f=>values[f[0]]=$("f_"+f[0]).value);
+ let probable="";
+ if(area==="Porcicultura"&&kind==="Inseminación"&&values.fecha){
+ const d=new Date(values.fecha+"T12:00:00");
+ d.setDate(d.getDate()+114);
+ probable=d.toISOString().slice(0,10);
+ values.fechaProbableParto=probable;
+ }
+ const data=readData();
+ data.push({id:Date.now().toString(),area,kind,values,created:new Date().toLocaleString("es-CO")});
+ saveData(data);
+ renderRecords();
+ e.target.reset();
+ drawFields();
+ alert(probable?"Registro guardado. Fecha probable de parto: "+probable:"Registro guardado en este dispositivo.");
+};
+$("exportBtn").onclick=()=>{
+ const blob=new Blob([JSON.stringify(readData(),null,2)],{type:"application/json"});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement("a");
+ a.href=url;a.download="respaldo-la-teresa.json";a.click();
+ URL.revokeObjectURL(url);
+};
+renderModules();
+renderForm();
+renderRecords();
+</script>
+</body>
+</html>
