@@ -793,6 +793,156 @@ actualizarGestacion();
   mostrar();
 })();
 </script>
+
+<section id="inventario-animales" style="padding:20px;max-width:900px;margin:20px auto;font-family:Arial,sans-serif;color:#222;border:1px solid #ddd;border-radius:12px;">
+  <h2>Inventario de animales</h2>
+  <p>Control de existencias, nacimientos, compras, muertes y ventas.</p>
+
+  <form id="laTeresaInvForm">
+    <label>Especie</label>
+    <select id="laTeresaInvEspecie" required style="display:block;width:100%;padding:10px;margin:6px 0 14px;">
+      <option value="Porcinos">Porcinos</option>
+      <option value="Bovinos">Bovinos</option>
+      <option value="Gallinas">Gallinas</option>
+      <option value="Peces">Peces</option>
+    </select>
+
+    <label>Movimiento</label>
+    <select id="laTeresaInvTipo" required style="display:block;width:100%;padding:10px;margin:6px 0 14px;">
+      <option value="Inventario inicial">Inventario inicial</option>
+      <option value="Nacimiento">Nacimiento</option>
+      <option value="Compra">Compra</option>
+      <option value="Muerte">Muerte</option>
+      <option value="Venta">Venta</option>
+    </select>
+
+    <label>Fecha</label>
+    <input id="laTeresaInvFecha" type="date" required style="display:block;width:100%;padding:10px;margin:6px 0 14px;">
+
+    <label>Cantidad de animales</label>
+    <input id="laTeresaInvCantidad" type="number" min="1" step="1" required placeholder="Ej. 10" style="display:block;width:100%;padding:10px;margin:6px 0 14px;">
+
+    <label>Identificación o lote (opcional)</label>
+    <input id="laTeresaInvLote" maxlength="80" placeholder="Ej. Lote de lechones 01" style="display:block;width:100%;padding:10px;margin:6px 0 14px;">
+
+    <label>Observaciones</label>
+    <textarea id="laTeresaInvObs" maxlength="500" placeholder="Detalles del movimiento" style="display:block;width:100%;padding:10px;margin:6px 0 14px;"></textarea>
+
+    <button type="submit" style="background:#222;color:white;padding:12px 18px;border:0;border-radius:8px;">Guardar movimiento</button>
+  </form>
+
+  <h3>Existencias actuales</h3>
+  <div id="laTeresaInvResumen">Aún no hay movimientos registrados.</div>
+
+  <h3>Historial de movimientos</h3>
+  <div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;font-size:14px;">
+      <thead>
+        <tr>
+          <th style="padding:8px;border-bottom:1px solid #ccc;">Fecha</th>
+          <th style="padding:8px;border-bottom:1px solid #ccc;">Especie</th>
+          <th style="padding:8px;border-bottom:1px solid #ccc;">Movimiento</th>
+          <th style="padding:8px;border-bottom:1px solid #ccc;">Cantidad</th>
+          <th style="padding:8px;border-bottom:1px solid #ccc;">Lote / observaciones</th>
+        </tr>
+      </thead>
+      <tbody id="laTeresaInvHistorial"></tbody>
+    </table>
+  </div>
+  <p style="font-size:12px;color:#666;">Los registros se guardan en este navegador y dispositivo.</p>
+</section>
+
+<script>
+(function () {
+  const clave = "lateresa_inventario_animales_v1";
+  const formulario = document.getElementById("laTeresaInvForm");
+  if (!formulario || formulario.dataset.iniciado === "si") return;
+  formulario.dataset.iniciado = "si";
+
+  const obtener = () => {
+    try {
+      const datos = JSON.parse(localStorage.getItem(clave) || "[]");
+      return Array.isArray(datos) ? datos : [];
+    } catch (e) {
+      return [];
+    }
+  };
+
+  const seguro = (valor) => String(valor ?? "").replace(/[&<>"']/g, c => ({
+    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+  }[c]));
+
+  function mostrar() {
+    const registros = obtener();
+    const especies = ["Porcinos", "Bovinos", "Gallinas", "Peces"];
+    const resumen = especies.map(especie => {
+      const total = registros.filter(r => r.especie === especie).reduce((s, r) => {
+        return s + (["Inventario inicial", "Nacimiento", "Compra"].includes(r.tipo) ? r.cantidad : -r.cantidad);
+      }, 0);
+      return `<p><strong>${especie}:</strong> ${total} animales</p>`;
+    }).join("");
+
+    document.getElementById("laTeresaInvResumen").innerHTML = resumen;
+
+    document.getElementById("laTeresaInvHistorial").innerHTML =
+      registros.slice().reverse().map(r => `
+        <tr>
+          <td style="padding:8px;border-bottom:1px solid #eee;">${seguro(r.fecha)}</td>
+          <td style="padding:8px;border-bottom:1px solid #eee;">${seguro(r.especie)}</td>
+          <td style="padding:8px;border-bottom:1px solid #eee;">${seguro(r.tipo)}</td>
+          <td style="padding:8px;border-bottom:1px solid #eee;">${r.cantidad}</td>
+          <td style="padding:8px;border-bottom:1px solid #eee;">${seguro(r.lote)} ${seguro(r.obs)}</td>
+        </tr>
+      `).join("") || '<tr><td colspan="5" style="padding:10px;">Todavía no hay registros.</td></tr>';
+  }
+
+  formulario.addEventListener("submit", function (e) {
+    e.preventDefault();
+    const especie = document.getElementById("laTeresaInvEspecie").value;
+    const tipo = document.getElementById("laTeresaInvTipo").value;
+    const fecha = document.getElementById("laTeresaInvFecha").value;
+    const cantidad = Number(document.getElementById("laTeresaInvCantidad").value);
+
+    if (!fecha || !Number.isInteger(cantidad) || cantidad < 1) {
+      alert("Ingresa una fecha y una cantidad válida.");
+      return;
+    }
+
+    const registros = obtener();
+    const saldo = registros.filter(r => r.especie === especie).reduce((s, r) => {
+      return s + (["Inventario inicial", "Nacimiento", "Compra"].includes(r.tipo) ? r.cantidad : -r.cantidad);
+    }, 0);
+    const movimientoNegativo = ["Muerte", "Venta"].includes(tipo);
+
+    if (movimientoNegativo && cantidad > saldo) {
+      alert("La cantidad supera las existencias registradas de " + especie + ". Registra primero el inventario inicial.");
+      return;
+    }
+
+    registros.push({
+      especie,
+      tipo,
+      fecha,
+      cantidad,
+      lote: document.getElementById("laTeresaInvLote").value.trim(),
+      obs: document.getElementById("laTeresaInvObs").value.trim()
+    });
+
+    try {
+      localStorage.setItem(clave, JSON.stringify(registros));
+    } catch (error) {
+      alert("No se pudo guardar. Revisa el espacio disponible del navegador.");
+      return;
+    }
+
+    formulario.reset();
+    mostrar();
+    alert("Movimiento guardado correctamente.");
+  });
+
+  mostrar();
+})();
+</script>
 body>
 </html>
 
