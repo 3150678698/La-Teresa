@@ -1,0 +1,723 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#111111">
+  <title>LA TERESA | Administración de finca</title>
+  <style>
+    :root {
+      --black: #111111;
+      --white: #ffffff;
+      --bg: #f4f4f4;
+      --gray: #777777;
+      --line: #e5e5e5;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      background: var(--bg);
+      color: var(--black);
+    }
+
+    button, input, select, textarea { font: inherit; }
+
+    button { cursor: pointer; }
+
+    .layout { min-height: 100vh; }
+
+    .sidebar {
+      background: var(--black);
+      color: var(--white);
+      padding: 24px 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 4px 8px 24px;
+      border-bottom: 1px solid #383838;
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      border: 1px solid #777;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-size: 23px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 19px;
+      letter-spacing: 2px;
+    }
+
+    .brand p {
+      margin: 5px 0 0;
+      font-size: 11px;
+      color: #bdbdbd;
+    }
+
+    .nav-title {
+      margin: 25px 8px 10px;
+      color: #999;
+      font-size: 10px;
+      letter-spacing: 1.8px;
+    }
+
+    .nav {
+      display: grid;
+      gap: 5px;
+    }
+
+    .nav button {
+      border: 0;
+      background: transparent;
+      color: #d4d4d4;
+      text-align: left;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 13px;
+    }
+
+    .nav button.active,
+    .nav button:hover {
+      background: #fff;
+      color: #111;
+    }
+
+    .side-note {
+      margin: 28px 4px 0;
+      padding: 13px;
+      border: 1px solid #414141;
+      border-radius: 10px;
+      font-size: 12px;
+      color: #ccc;
+      line-height: 1.6;
+    }
+
+    .main { min-width: 0; }
+
+    .topbar {
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      padding: 17px 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .topbar small { color: var(--gray); }
+
+    .user {
+      border: 1px solid var(--line);
+      padding: 9px 12px;
+      border-radius: 9px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .content {
+      padding: 26px 22px 40px;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    .eyebrow {
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--gray);
+      text-transform: uppercase;
+    }
+
+    .heading {
+      margin: 8px 0;
+      font-size: clamp(25px, 4vw, 34px);
+      letter-spacing: -1px;
+    }
+
+    .subtitle {
+      color: var(--gray);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .hero {
+      margin-top: 22px;
+      background: var(--black);
+      color: #fff;
+      border-radius: 16px;
+      padding: 25px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .hero h2 {
+      margin: 10px 0;
+      font-size: clamp(21px, 3vw, 28px);
+    }
+
+    .hero p {
+      margin: 0;
+      color: #ccc;
+      font-size: 13px;
+      line-height: 1.7;
+      max-width: 470px;
+    }
+
+    .hero-mark {
+      font-size: 55px;
+      opacity: .9;
+    }
+
+    .section-title {
+      margin: 30px 0 14px;
+      font-size: 17px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .stat, .module, .panel {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 17px;
+    }
+
+    .stat-label {
+      color: var(--gray);
+      font-size: 12px;
+    }
+
+    .stat-number {
+      font-size: 26px;
+      font-weight: 700;
+      margin: 13px 0 5px;
+    }
+
+    .stat-foot {
+      font-size: 11px;
+      color: var(--gray);
+    }
+
+    .modules {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 13px;
+    }
+
+    .module {
+      color: var(--black);
+      text-align: left;
+      width: 100%;
+      transition: transform .15s, border-color .15s;
+    }
+
+    .module:hover {
+      transform: translateY(-2px);
+      border-color: #777;
+    }
+
+    .module-icon {
+      width: 43px;
+      height: 43px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      margin-bottom: 17px;
+    }
+
+    .module h3 {
+      font-size: 15px;
+      margin: 0 0 8px;
+    }
+
+    .module p {
+      color: var(--gray);
+      font-size: 12px;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .module-link {
+      display: block;
+      margin-top: 17px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .panel { margin-top: 24px; }
+
+    .panel h3 { margin: 0 0 8px; }
+
+    .panel p {
+      color: var(--gray);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .record-list {
+      padding: 0;
+      list-style: none;
+      margin: 15px 0 0;
+    }
+
+    .record-list li {
+      padding: 12px 0;
+      border-top: 1px solid var(--line);
+      font-size: 13px;
+      overflow-wrap: anywhere;
+    }
+
+    .empty { color: var(--gray); }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 12px;
+      margin-bottom: 7px;
+    }
+
+    .field input, .field select, .field textarea {
+      width: 100%;
+      border: 1px solid #d8d8d8;
+      border-radius: 8px;
+      padding: 12px;
+      background: white;
+      color: var(--black);
+    }
+
+    .field textarea {
+      min-height: 85px;
+      resize: vertical;
+    }
+
+    .full { grid-column: 1 / -1; }
+
+    .primary, .secondary {
+      border: 1px solid var(--black);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .primary { background: var(--black); color: white; }
+    .secondary { background: white; color: var(--black); }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-top: 17px;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 24px 10px;
+      color: var(--gray);
+      font-size: 11px;
+    }
+
+    @media (min-width: 850px) {
+      .layout {
+        display: grid;
+        grid-template-columns: 240px minmax(0, 1fr);
+      }
+      .sidebar { min-height: 100vh; }
+      .sidebar-inner { position: sticky; top: 20px; }
+    }
+
+    @media (max-width: 849px) {
+      .sidebar { padding: 15px 12px; }
+      .brand { padding-bottom: 15px; }
+      .nav-title { margin-top: 17px; }
+      .nav {
+        display: flex;
+        overflow-x: auto;
+        padding-bottom: 5px;
+      }
+      .nav button { white-space: nowrap; }
+      .side-note { display: none; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .modules { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .content { padding: 22px 14px 32px; }
+      .hero { padding: 20px; }
+      .hero-mark { font-size: 38px; }
+    }
+
+    @media (max-width: 420px) {
+      .modules { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .full { grid-column: auto; }
+      .hero-mark { display: none; }
+      .topbar { padding: 13px; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+      <div class="brand">
+        <div class="brand-icon">♧</div>
+        <div>
+          <h1>LA TERESA</h1>
+          <p>ADMINISTRACIÓN RURAL</p>
+        </div>
+      </div>
+
+      <p class="nav-title">MENÚ PRINCIPAL</p>
+      <nav class="nav" id="nav">
+        <button class="active" data-page="inicio">⌂ &nbsp; Panel principal</button>
+        <button data-page="porcicultura">♧ &nbsp; Porcicultura</button>
+        <button data-page="ganaderia">♧ &nbsp; Ganadería</button>
+        <button data-page="avicultura">♧ &nbsp; Avicultura</button>
+        <button data-page="piscicultura">≈ &nbsp; Piscicultura</button>
+        <button data-page="inventario">▤ &nbsp; Inventario</button>
+        <button data-page="finanzas">$ &nbsp; Finanzas</button>
+        <button data-page="actividades">✓ &nbsp; Actividades</button>
+      </nav>
+
+      <div class="side-note">
+        <strong>GESTIÓN DE FINCA</strong><br>
+        Organiza tus animales, producción, inventario y gastos desde un solo lugar.
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <small id="breadcrumb">LA TERESA / INICIO</small>
+      <div class="user">👤 Administradora</div>
+    </header>
+
+    <div class="content" id="content"></div>
+
+    <footer class="footer">
+      LA TERESA · Sistema de administración agropecuaria
+    </footer>
+  </main>
+</div>
+
+<script>
+  const modules = {
+    porcicultura: {
+      title: "Porcicultura",
+      icon: "♧",
+      description: "Administra la reproducción, los partos, los lechones, la alimentación y el ciclo productivo de tus cerdos.",
+      actions: ["Registro de animales", "Reproducción e inseminación", "Partos y lechones", "Alimentación y sanidad"]
+    },
+    ganaderia: {
+      title: "Ganadería",
+      icon: "♧",
+      description: "Organiza el inventario bovino, los nacimientos, los controles sanitarios y la producción.",
+      actions: ["Inventario bovino", "Nacimientos y reproducción", "Sanidad y pesajes", "Producción"]
+    },
+    avicultura: {
+      title: "Avicultura",
+      icon: "◉",
+      description: "Lleva el control de las aves, su alimentación, la producción de huevos y las novedades.",
+      actions: ["Inventario de aves", "Alimentación", "Producción de huevos", "Mortalidad"]
+    },
+    piscicultura: {
+      title: "Piscicultura",
+      icon: "≈",
+      description: "Organiza los estanques, las siembras, la alimentación y las cosechas de peces.",
+      actions: ["Estanques", "Siembras y lotes", "Alimentación y mortalidad", "Cosechas"]
+    },
+    inventario: {
+      title: "Inventario",
+      icon: "▤",
+      description: "Controla los concentrados, los insumos, las herramientas y los movimientos de almacén.",
+      actions: ["Existencias", "Entradas y salidas", "Proveedores", "Alertas de existencias"]
+    },
+    finanzas: {
+      title: "Finanzas",
+      icon: "$",
+      description: "Registra ingresos, gastos, compras y ventas para conocer los costos de la finca.",
+      actions: ["Registrar ingresos", "Registrar gastos", "Compras y ventas", "Resumen financiero"]
+    },
+    actividades: {
+      title: "Actividades",
+      icon: "✓",
+      description: "Organiza las labores diarias, los pendientes y las fechas importantes de la finca.",
+      actions: ["Nueva actividad", "Calendario", "Pendientes", "Historial de labores"]
+    }
+  };
+
+  const storeKey = "laTeresaRegistrosV1";
+  let records = [];
+
+  try {
+    records = JSON.parse(localStorage.getItem(storeKey) || "[]");
+    if (!Array.isArray(records)) records = [];
+  } catch (e) {
+    records = [];
+  }
+
+  const content = document.getElementById("content");
+
+  function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;",
+      '"': "&quot;", "'": "&#39;"
+    })[char]);
+  }
+
+  function saveRecords() {
+    try {
+      localStorage.setItem(storeKey, JSON.stringify(records));
+      return true;
+    } catch (e) {
+      alert("No se pudieron guardar los datos en este navegador. Exporta tus registros y verifica el espacio disponible.");
+      return false;
+    }
+  }
+
+  function showHome() {
+    document.getElementById("breadcrumb").textContent = "LA TERESA / INICIO";
+    document.querySelectorAll("#nav button").forEach(b =>
+      b.classList.toggle("active", b.dataset.page === "inicio")
+    );
+
+    content.innerHTML = `
+      <div class="eyebrow">CENTRO DE CONTROL AGROPECUARIO</div>
+      <h1 class="heading">Panel principal</h1>
+      <p class="subtitle">Bienvenida a LA TERESA. Administra tu finca desde un solo lugar.</p>
+
+      <section class="hero">
+        <div>
+          <div class="eyebrow" style="color:#aaa">GANADERÍA Y PORCICULTURA</div>
+          <h2>Todo tu campo,<br>organizado en un solo lugar.</h2>
+          <p>Registra tus operaciones, consulta la información y organiza el trabajo diario de la finca.</p>
+        </div>
+        <div class="hero-mark">♧</div>
+      </section>
+
+      <h2 class="section-title">Resumen de registros</h2>
+      <section class="stats">
+        <div class="stat">
+          <div class="stat-label">Registros guardados</div>
+          <div class="stat-number">${records.length}</div>
+          <div class="stat-foot">En este navegador</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Módulos disponibles</div>
+          <div class="stat-number">7</div>
+          <div class="stat-foot">Áreas de gestión</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Actividades pendientes</div>
+          <div class="stat-number">${records.filter(r => r.module === "actividades" && r.status !== "Completada").length}</div>
+          <div class="stat-foot">Según tus registros</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Gastos registrados</div>
+          <div class="stat-number">${formatMoney(records.filter(r => r.module === "finanzas" && r.type === "Gasto").reduce((sum, r) => sum + (Number(r.amount) || 0), 0))}</div>
+          <div class="stat-foot">COP · datos registrados</div>
+        </div>
+      </section>
+
+      <h2 class="section-title">Módulos de la finca</h2>
+      <section class="modules">
+        ${Object.entries(modules).map(([key, m]) => `
+          <button class="module" data-open="${key}">
+            <div class="module-icon">${m.icon}</div>
+            <h3>${m.title}</h3>
+            <p>${m.description}</p>
+            <span class="module-link">ABRIR MÓDULO →</span>
+          </button>
+        `).join("")}
+      </section>
+
+      <section class="panel">
+        <h3>Últimos registros</h3>
+        <p>Los registros nuevos aparecerán aquí.</p>
+        ${renderRecordList(records.slice(-5).reverse())}
+        <div class="actions">
+          <button class="secondary" id="exportData">Exportar registros</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>Importante sobre tus datos</h3>
+        <p>Esta primera versión guarda los registros en el almacenamiento local del navegador. No los sincroniza automáticamente con otros dispositivos. Exporta copias de seguridad y evita borrar los datos del navegador hasta contar con un sistema de almacenamiento conectado.</p>
+      </section>
+    `;
+
+    content.querySelectorAll("[data-open]").forEach(button =>
+      button.addEventListener("click", () => showModule(button.dataset.open))
+    );
+    document.getElementById("exportData").addEventListener("click", exportRecords);
+  }
+
+  function formatMoney(value) {
+    return new Intl.NumberFormat("es-CO", {
+      style: "currency", currency: "COP",
+      maximumFractionDigits: 0
+    }).format(value || 0);
+  }
+
+  function renderRecordList(list) {
+    if (!list.length) {
+      return '<ul class="record-list"><li class="empty">Todavía no hay registros.</li></ul>';
+    }
+    return `<ul class="record-list">${list.map(r => `
+      <li><strong>${escapeHTML(r.title)}</strong> — ${escapeHTML(modules[r.module]?.title || r.module)}
+      <br><span class="empty">${escapeHTML(r.date || "")}</span></li>
+    `).join("")}</ul>`;
+  }
+
+  function showModule(key) {
+    const m = modules[key];
+    if (!m) return;
+
+    document.getElementById("breadcrumb").textContent = "LA TERESA / " + m.title.toUpperCase();
+    document.querySelectorAll("#nav button").forEach(b =>
+      b.classList.toggle("active", b.dataset.page === key)
+    );
+
+    content.innerHTML = `
+      <div class="eyebrow">GESTIÓN AGROPECUARIA</div>
+      <h1 class="heading">${m.icon} ${m.title}</h1>
+      <p class="subtitle">${m.description}</p>
+
+      <section class="panel">
+        <h3>Nuevo registro</h3>
+        <p>Completa los campos para guardar una anotación en este módulo.</p>
+        <form id="recordForm">
+          <div class="form-grid">
+            <div class="field">
+              <label for="recordTitle">Nombre o concepto *</label>
+              <input id="recordTitle" required maxlength="120"
+                placeholder="${key === "porcicultura" ? "Ej. Cerda C001" : "Ej. Compra de insumos"}">
+            </div>
+            <div class="field">
+              <label for="recordDate">Fecha *</label>
+              <input id="recordDate" type="date" required value="${new Date().toLocaleDateString("en-CA")}">
+            </div>
+            ${key === "finanzas" ? `
+              <div class="field">
+                <label for="recordType">Tipo de movimiento</label>
+                <select id="recordType">
+                  <option>Gasto</option>
+                  <option>Ingreso</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="recordAmount">Valor en pesos colombianos</label>
+                <input id="recordAmount" type="number" min="0" step="1" placeholder="Ej. 150000">
+              </div>
+            ` : ""}
+            ${key === "actividades" ? `
+              <div class="field">
+                <label for="recordStatus">Estado</label>
+                <select id="recordStatus">
+                  <option>Pendiente</option>
+                  <option>En proceso</option>
+                  <option>Completada</option>
+                </select>
+              </div>
+            ` : ""}
+            <div class="field full">
+              <label for="recordNotes">Observaciones</label>
+              <textarea id="recordNotes" maxlength="1000"
+                placeholder="Escribe los detalles de este registro..."></textarea>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="primary" type="submit">Guardar registro</button>
+            <button class="secondary" type="button" id="backHome">Volver al panel</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel">
+        <h3>Registros de ${m.title}</h3>
+        <p>Información anotada en este navegador.</p>
+        ${renderRecordList(records.filter(r => r.module === key).slice().reverse())}
+        <div class="actions">
+          <button class="secondary" id="exportData">Exportar registros</button>
+        </div>
+      </section>
+    `;
+
+    document.getElementById("backHome").addEventListener("click", showHome);
+    document.getElementById("exportData").addEventListener("click", exportRecords);
+
+    document.getElementById("recordForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const title = document.getElementById("recordTitle").value.trim();
+      const date = document.getElementById("recordDate").value;
+      if (!title || !date) return;
+
+      const record = {
+        id: Date.now().toString(),
+        module: key,
+        title,
+        date,
+        notes: document.getElementById("recordNotes").value.trim(),
+        type: document.getElementById("recordType")?.value || "",
+        amount: document.getElementById("recordAmount")?.value || "",
+        status: document.getElementById("recordStatus")?.value || ""
+      };
+
+      records.push(record);
+      if (saveRecords()) {
+        alert("Registro guardado en este navegador.");
+        showModule(key);
+      } else {
+        records.pop();
+      }
+    });
+  }
+
+  function exportRecords() {
+    const blob = new Blob(
+      [JSON.stringify(records, null, 2)],
+      { type: "application/json;charset=utf-8" }
+    );
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "la-teresa-registros.json";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  document.querySelectorAll("#nav button").forEach(button => {
+    button.addEventListener("click", () => {
+      if (button.dataset.page === "inicio") showHome();
+      else showModule(button.dataset.page);
+    });
+  });
+
+  showHome();
+</script>
+</body>
+</html>
