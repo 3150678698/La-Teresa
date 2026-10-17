@@ -514,6 +514,167 @@ actualizarGestacion();
   mostrarPartos();
 })();
 </script>
-<!-- FIN MODULO REGISTRO DE PARTOS -->body>
+<!-- FIN MODULO REGISTRO DE PARTOS --><!-- MODULO LACTANCIA Y DESTETE LA TERESA -->
+<section id="modulo-lactancia" style="padding:16px;font-family:Arial;color:#111;background:#fff;border:1px solid #ddd;border-radius:12px;margin:12px;">
+  <h2>Lactancia y destete</h2>
+  <p>El destete se programa inicialmente a los 28 días del nacimiento.</p>
+
+  <form id="form-lactancia">
+    <label>Identificación de la cerda</label>
+    <input id="lac-cerda" required placeholder="Ej. CERDA-01"
+      style="display:block;width:100%;padding:10px;margin:6px 0 12px;box-sizing:border-box;">
+
+    <label>Fecha de nacimiento de la camada</label>
+    <input id="lac-fecha" type="date" required
+      style="display:block;width:100%;padding:10px;margin:6px 0 12px;box-sizing:border-box;">
+
+    <label>Lechones vivos al inicio</label>
+    <input id="lac-inicio" type="number" min="0" value="0" required
+      style="display:block;width:100%;padding:10px;margin:6px 0 12px;box-sizing:border-box;">
+
+    <label>Bajas durante lactancia</label>
+    <input id="lac-bajas" type="number" min="0" value="0" required
+      style="display:block;width:100%;padding:10px;margin:6px 0 12px;box-sizing:border-box;">
+
+    <label>Fecha programada de destete</label>
+    <input id="lac-programada" type="date" required
+      style="display:block;width:100%;padding:10px;margin:6px 0 12px;box-sizing:border-box;">
+
+    <label>Fecha real de destete (si ya ocurrió)</label>
+    <input id="lac-real" type="date"
+      style="display:block;width:100%;padding:10px;margin:6px 0 12px;box-sizing:border-box;">
+
+    <label>Lechones destetados</label>
+    <input id="lac-destetados" type="number" min="0" value="0" required
+      style="display:block;width:100%;padding:10px;margin:6px 0 12px;box-sizing:border-box;">
+
+    <label>Peso promedio al destete (kg, si se conoce)</label>
+    <input id="lac-peso" type="number" min="0" step="0.1" placeholder="Ej. 7.5"
+      style="display:block;width:100%;padding:10px;margin:6px 0 12px;box-sizing:border-box;">
+
+    <label>Observaciones</label>
+    <textarea id="lac-observaciones" placeholder="Estado de la camada, tratamientos, novedades..."
+      style="display:block;width:100%;padding:10px;margin:6px 0 12px;box-sizing:border-box;"></textarea>
+
+    <button type="submit" style="padding:12px;background:#111;color:white;border:0;border-radius:8px;width:100%;">
+      Guardar lactancia
+    </button>
+  </form>
+
+  <p id="lac-mensaje" role="status"></p>
+  <h3>Camadas registradas</h3>
+  <div id="lac-lista"></div>
+</section>
+
+<script>
+(function () {
+  const clave = "lateresa_lactancia_v1";
+  const formulario = document.getElementById("form-lactancia");
+  if (!formulario || formulario.dataset.iniciado === "si") return;
+  formulario.dataset.iniciado = "si";
+
+  const campoFecha = document.getElementById("lac-fecha");
+  const campoProgramada = document.getElementById("lac-programada");
+  const mensaje = document.getElementById("lac-mensaje");
+  const lista = document.getElementById("lac-lista");
+
+  function fechaMas28(fecha) {
+    if (!fecha) return "";
+    const d = new Date(fecha + "T12:00:00");
+    d.setDate(d.getDate() + 28);
+    return d.getFullYear() + "-" +
+      String(d.getMonth() + 1).padStart(2, "0") + "-" +
+      String(d.getDate()).padStart(2, "0");
+  }
+
+  campoFecha.addEventListener("change", function () {
+    campoProgramada.value = fechaMas28(campoFecha.value);
+  });
+
+  function leer() {
+    try {
+      return JSON.parse(localStorage.getItem(clave) || "[]");
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function mostrar() {
+    const registros = leer();
+    lista.innerHTML = "";
+
+    if (!registros.length) {
+      lista.textContent = "Todavía no hay camadas registradas.";
+      return;
+    }
+
+    registros.slice().reverse().forEach(function (r) {
+      const tarjeta = document.createElement("div");
+      tarjeta.style.cssText = "border:1px solid #ddd;border-radius:8px;padding:12px;margin:8px 0;";
+
+      const titulo = document.createElement("strong");
+      titulo.textContent = r.cerda + " — nacimiento: " + r.fecha;
+
+      const detalle = document.createElement("p");
+      detalle.textContent =
+        "Destete programado: " + r.programada +
+        " | Destete real: " + (r.real || "Pendiente") +
+        " | Lechones al inicio: " + r.inicio +
+        " | Bajas: " + r.bajas +
+        " | Destetados: " + r.destetados +
+        " | Peso promedio: " + (r.peso ? r.peso + " kg" : "Sin dato");
+
+      const obs = document.createElement("p");
+      obs.textContent = "Observaciones: " + (r.observaciones || "Ninguna");
+
+      tarjeta.append(titulo, detalle, obs);
+      lista.appendChild(tarjeta);
+    });
+  }
+
+  formulario.addEventListener("submit", function (evento) {
+    evento.preventDefault();
+
+    const r = {
+      cerda: document.getElementById("lac-cerda").value.trim(),
+      fecha: campoFecha.value,
+      inicio: Number(document.getElementById("lac-inicio").value),
+      bajas: Number(document.getElementById("lac-bajas").value),
+      programada: campoProgramada.value,
+      real: document.getElementById("lac-real").value,
+      destetados: Number(document.getElementById("lac-destetados").value),
+      peso: document.getElementById("lac-peso").value,
+      observaciones: document.getElementById("lac-observaciones").value.trim()
+    };
+
+    if (!r.cerda || !r.fecha || !r.programada) {
+      mensaje.textContent = "Completa la cerda, la fecha de nacimiento y el destete programado.";
+      return;
+    }
+
+    if (r.bajas > r.inicio || r.destetados > r.inicio - r.bajas) {
+      mensaje.textContent = "Revisa las cantidades: las bajas y los destetados no pueden superar los lechones disponibles.";
+      return;
+    }
+
+    try {
+      const registros = leer();
+      registros.push(r);
+      localStorage.setItem(clave, JSON.stringify(registros));
+      formulario.reset();
+      document.getElementById("lac-inicio").value = 0;
+      document.getElementById("lac-bajas").value = 0;
+      document.getElementById("lac-destetados").value = 0;
+      mensaje.textContent = "Lactancia guardada en este dispositivo.";
+      mostrar();
+    } catch (e) {
+      mensaje.textContent = "No se pudo guardar. Revisa el almacenamiento del navegador.";
+    }
+  });
+
+  mostrar();
+})();
+</script>
+<!-- FIN MODULO LACTANCIA Y DESTETE -->body>
 </html>
 
