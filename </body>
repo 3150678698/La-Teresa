@@ -33,6 +33,134 @@ footer{text-align:center;padding:25px;color:#666;font-size:12px}
 </style>
 </head>
 <body>
+<style>
+.lt-alertas{max-width:850px;margin:18px auto;padding:0 16px}
+.lt-alertas .panel{margin-top:0}
+.lt-alerta{border:1px solid #ddd;border-left:5px solid #777;border-radius:9px;padding:12px;margin:10px 0;background:#fff}
+.lt-alerta.verde{border-left-color:#23834b}
+.lt-alerta.amarillo{border-left-color:#d69b00}
+.lt-alerta.rojo{border-left-color:#c93434}
+.lt-alerta h3{margin:0 0 6px;font-size:15px}
+.lt-alerta p{margin:5px 0;font-size:13px}
+.lt-alerta button{margin-top:8px;padding:8px;border:1px solid #aaa;border-radius:7px;background:white}
+</style>
+
+<section class="lt-alertas">
+  <div class="panel">
+    <h2>🔔 Calendario reproductivo</h2>
+    <p class="muted">
+      Alertas desde 7 días antes de cada evento.
+    </p>
+    <div id="ltCalendario"></div>
+  </div>
+</section>
+
+<script>
+(function(){
+ const eventos=[
+  {dia:21,nombre:"Revisión de retorno al celo"},
+  {dia:28,nombre:"Confirmación de gestación"},
+  {dia:100,nombre:"Preparación de maternidad"},
+  {dia:107,nombre:"Traslado a maternidad"},
+  {dia:114,nombre:"Fecha probable de parto"}
+ ];
+ const clave="lateresa_eventos_confirmados";
+
+ function fechaMasDias(fecha,dias){
+  const d=new Date(fecha+"T12:00:00");
+  if(isNaN(d.getTime()))return null;
+  d.setDate(d.getDate()+dias);
+  return d;
+ }
+ function diasRestantes(fecha){
+  const hoy=new Date();
+  hoy.setHours(0,0,0,0);
+  const objetivo=new Date(fecha);
+  objetivo.setHours(0,0,0,0);
+  return Math.round((objetivo-hoy)/86400000);
+ }
+ function formato(fecha){
+  return fecha.toLocaleDateString("es-CO",{
+   day:"2-digit",month:"short",year:"numeric"
+  });
+ }
+ function textoSeguro(valor){
+  return String(valor).replace(/[&<>"']/g,c=>({
+   "&":"&amp;","<":"&lt;",">":"&gt;",
+   '"':"&quot;","'":"&#39;"
+  }[c]));
+ }
+ function leerConfirmados(){
+  try{return JSON.parse(localStorage.getItem(clave)||"{}")}
+  catch(e){return {}}
+ }
+ function dibujar(){
+  const cont=document.getElementById("ltCalendario");
+  if(!cont)return;
+  const registros=typeof readData==="function"?readData():[];
+  const inseminaciones=registros.filter(r=>
+   r.area==="Porcicultura"&&
+   r.kind==="Inseminación"&&
+   r.values&&r.values.fecha
+  );
+  if(!inseminaciones.length){
+   cont.innerHTML='<p class="muted">Registra una inseminación para generar el calendario.</p>';
+   return;
+  }
+  const confirmados=leerConfirmados();
+  const pendientes=[];
+  inseminaciones.forEach(r=>{
+   eventos.forEach(e=>{
+    const fecha=fechaMasDias(r.values.fecha,e.dia);
+    if(!fecha)return;
+    const id=r.id+"-"+e.dia;
+    if(confirmados[id])return;
+    pendientes.push({
+     id,fecha,dias:diasRestantes(fecha),
+     cerda:r.values.identificacion||"Sin identificación",
+     nombre:e.nombre
+    });
+   });
+  });
+  pendientes.sort((a,b)=>a.fecha-b.fecha);
+  if(!pendientes.length){
+   cont.innerHTML='<p class="muted">Todos los eventos están confirmados.</p>';
+   return;
+  }
+  cont.innerHTML=pendientes.map(e=>{
+   const color=e.dias<0?"rojo":e.dias<=7?"amarillo":"verde";
+   const estado=e.dias<0?
+    "Vencido hace "+Math.abs(e.dias)+" día(s)":
+    e.dias===0?"Evento programado para hoy":
+    "Faltan "+e.dias+" día(s)";
+   return '<article class="lt-alerta '+color+'">'+
+    '<h3>'+textoSeguro(e.cerda)+' · '+textoSeguro(e.nombre)+'</h3>'+
+    '<p>Fecha: '+formato(e.fecha)+'</p>'+
+    '<p><b>'+estado+'</b></p>'+
+    '<button type="button" data-confirmar="'+textoSeguro(e.id)+'">Marcar como realizado</button>'+
+    '</article>';
+  }).join("");
+  cont.querySelectorAll("[data-confirmar]").forEach(b=>{
+   b.onclick=()=>{
+    const guardados=leerConfirmados();
+    guardados[b.dataset.confirmar]=true;
+    localStorage.setItem(clave,JSON.stringify(guardados));
+    dibujar();
+   };
+  });
+ }
+ document.addEventListener("submit",()=>{
+  setTimeout(dibujar,100);
+ });
+ document.addEventListener("click",e=>{
+  if(e.target.closest("[data-delete]")){
+   setTimeout(dibujar,100);
+  }
+ });
+ dibujar();
+})();
+</script>
+
 <header>
 <h1>LA TERESA</h1>
 <p>GESTIÓN AGROPECUARIA · FINCA</p>
