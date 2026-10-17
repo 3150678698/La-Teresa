@@ -1,0 +1,160 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LA TERESA | Administración Rural</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f5f5f5;color:#171717}
+header{background:#111;color:white;padding:24px 18px}
+header h1{margin:0;font-size:28px;letter-spacing:3px}
+header p{margin:8px 0 0;color:#ccc}
+main{padding:16px;max-width:800px;margin:auto}
+h2{font-size:20px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+button{cursor:pointer;border:1px solid #222;border-radius:8px;padding:14px;background:white;color:#111;font-size:15px}
+.module{text-align:left;min-height:90px;font-weight:bold}
+.module span{display:block;font-size:25px;margin-bottom:8px}
+button.active,.primary{background:#111;color:white}
+.panel{background:white;border:1px solid #ddd;border-radius:10px;padding:16px;margin-top:18px}
+label{display:block;font-size:14px;margin-top:12px}
+input,select,textarea{width:100%;padding:12px;margin-top:5px;border:1px solid #bbb;border-radius:6px;font-size:16px}
+.primary{width:100%;margin-top:16px}
+.record{border-top:1px solid #ddd;padding:12px 0;overflow-wrap:anywhere}
+small{color:#666}
+</style>
+</head>
+<body>
+<header>
+<h1>LA TERESA</h1>
+<p>Ganadería y Porcicultura · Administración rural</p>
+</header>
+<main>
+<h2>Módulos de la finca</h2>
+<div class="grid" id="modules"></div>
+<section class="panel">
+<h2 id="title">Porcicultura</h2>
+<p id="description">Registra los animales y las actividades de tu finca.</p>
+<form id="form">
+<label>Fecha
+<input type="date" id="date" required>
+</label>
+<label>Identificación del animal o registro
+<input id="animal" placeholder="Ej. CER-001, lote o actividad" required>
+</label>
+<label>Tipo de registro
+<select id="type">
+<option>Inventario</option>
+<option>Reproducción</option>
+<option>Alimentación</option>
+<option>Salud y tratamientos</option>
+<option>Nacimiento</option>
+<option>Compra</option>
+<option>Venta</option>
+<option>Gasto</option>
+<option>Ingreso</option>
+<option>Actividad general</option>
+</select>
+</label>
+<label>Cantidad
+<input id="quantity" type="number" min="0" step="any" placeholder="Ej. 5">
+</label>
+<label>Valor en pesos colombianos
+<input id="value" type="number" min="0" step="any" placeholder="Ej. 50000">
+</label>
+<label>Observaciones
+<textarea id="notes" rows="3" placeholder="Detalles del registro"></textarea>
+</label>
+<button class="primary" type="submit">Guardar registro</button>
+</form>
+</section>
+<section class="panel">
+<h2>Registros guardados</h2>
+<div id="records"><small>Todavía no hay registros en este módulo.</small></div>
+<button id="export" class="primary" type="button">Exportar copia de seguridad</button>
+</section>
+<p><small>Versión inicial. Los registros se guardan en este navegador y dispositivo. Exporta copias de seguridad periódicamente.</small></p>
+</main>
+<script>
+const names=[
+["Porcicultura","🐖"],
+["Ganadería","🐄"],
+["Avicultura","🐔"],
+["Piscicultura","🐟"],
+["Inventario","📦"],
+["Finanzas","💰"],
+["Actividades","📋"]
+];
+let current="Porcicultura";
+let data={};
+try{data=JSON.parse(localStorage.getItem("laTeresaDatos")||"{}")}catch(e){data={}}
+const modules=document.getElementById("modules");
+const form=document.getElementById("form");
+const date=document.getElementById("date");
+date.value=new Date().toLocaleDateString("en-CA");
+function drawModules(){
+modules.innerHTML="";
+names.forEach(([name,emoji])=>{
+const b=document.createElement("button");
+b.className="module"+(name===current?" active":"");
+const icon=document.createElement("span");
+icon.textContent=emoji;
+b.append(icon,document.createTextNode(name));
+b.onclick=()=>{current=name;render()};
+modules.appendChild(b);
+});
+}
+function render(){
+drawModules();
+document.getElementById("title").textContent=current;
+document.getElementById("description").textContent="Registros de "+current.toLowerCase()+". Completa el formulario y guarda cada actividad.";
+const records=document.getElementById("records");
+records.innerHTML="";
+const list=data[current]||[];
+if(!list.length){records.innerHTML="<small>Todavía no hay registros en este módulo.</small>";return}
+[...list].reverse().forEach(r=>{
+const div=document.createElement("div");
+div.className="record";
+const strong=document.createElement("strong");
+strong.textContent=r.animal+" · "+r.type;
+const detail=document.createElement("p");
+detail.textContent="Fecha: "+r.date+" | Cantidad: "+(r.quantity||"No indicada")+" | Valor: "+(r.value?"$"+Number(r.value).toLocaleString("es-CO"):"No indicado");
+const notes=document.createElement("small");
+notes.textContent=r.notes||"Sin observaciones";
+div.append(strong,detail,notes);
+records.appendChild(div);
+});
+}
+form.onsubmit=e=>{
+e.preventDefault();
+const r={
+date:date.value,
+animal:document.getElementById("animal").value.trim(),
+type:document.getElementById("type").value,
+quantity:document.getElementById("quantity").value,
+value:document.getElementById("value").value,
+notes:document.getElementById("notes").value.trim()
+};
+if(!r.animal)return;
+if(!data[current])data[current]=[];
+data[current].push(r);
+try{localStorage.setItem("laTeresaDatos",JSON.stringify(data))}
+catch(e){alert("No se pudo guardar. Exporta los registros anteriores si están disponibles.");return}
+form.reset();
+date.value=new Date().toLocaleDateString("en-CA");
+render();
+alert("Registro guardado en este dispositivo.");
+};
+document.getElementById("export").onclick=()=>{
+const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+const url=URL.createObjectURL(blob);
+const a=document.createElement("a");
+a.href=url;a.download="respaldo-la-teresa.json";a.click();
+URL.revokeObjectURL(url);
+};
+render();
+</script>
+</body>
+</html>
