@@ -366,5 +366,135 @@ function actualizarGestacion() {
   }
 }
 actualizarGestacion();
-</script>body>
+</script><!-- MODULO REGISTRO DE PARTOS LA TERESA -->
+<section id="registro-partos" style="padding:16px;font-family:Arial;color:#111;background:#fff;border:1px solid #ddd;border-radius:12px;margin:12px;">
+  <h2>🐷 Registro de partos</h2>
+  <p>Registra los nacimientos y el resultado de cada parto.</p>
+
+  <form id="formulario-partos">
+    <label>Identificación de la cerda</label>
+    <input id="parto-cerda" required placeholder="Ej. CERDA-01"
+      style="display:block;width:100%;padding:10px;margin:6px 0 12px;box-sizing:border-box;">
+
+    <label>Fecha del parto</label>
+    <input id="parto-fecha" type="date" required
+      style="display:block;width:100%;padding:10px;margin:6px 0 12px;box-sizing:border-box;">
+
+    <label>Lechones nacidos vivos</label>
+    <input id="parto-vivos" type="number" min="0" value="0" required
+      style="display:block;width:100%;padding:10px;margin:6px 0 12px;box-sizing:border-box;">
+
+    <label>Lechones nacidos muertos</label>
+    <input id="parto-muertos" type="number" min="0" value="0" required
+      style="display:block;width:100%;padding:10px;margin:6px 0 12px;box-sizing:border-box;">
+
+    <label>Lechones que requieren atención</label>
+    <input id="parto-atencion" type="number" min="0" value="0" required
+      style="display:block;width:100%;padding:10px;margin:6px 0 12px;box-sizing:border-box;">
+
+    <label>Observaciones</label>
+    <textarea id="parto-observaciones" placeholder="Peso, estado de la cerda, novedades..."
+      style="display:block;width:100%;padding:10px;margin:6px 0 12px;box-sizing:border-box;"></textarea>
+
+    <button type="submit"
+      style="padding:12px;background:#111;color:white;border:0;border-radius:8px;width:100%;">
+      Guardar registro de parto
+    </button>
+  </form>
+
+  <p id="parto-mensaje" role="status"></p>
+  <h3>Partos registrados</h3>
+  <div id="partos-lista"></div>
+</section>
+
+<script>
+(function () {
+  const clave = "lateresa_registro_partos_v1";
+  const formulario = document.getElementById("formulario-partos");
+  const mensaje = document.getElementById("parto-mensaje");
+  const lista = document.getElementById("partos-lista");
+
+  if (!formulario || formulario.dataset.iniciado === "si") return;
+  formulario.dataset.iniciado = "si";
+
+  function leerPartos() {
+    try {
+      return JSON.parse(localStorage.getItem(clave) || "[]");
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function mostrarPartos() {
+    const registros = leerPartos();
+
+    if (!registros.length) {
+      lista.textContent = "Todavía no hay partos registrados.";
+      return;
+    }
+
+    lista.innerHTML = "";
+    registros.slice().reverse().forEach(function (p) {
+      const tarjeta = document.createElement("div");
+      tarjeta.style.cssText =
+        "border:1px solid #ddd;border-radius:8px;padding:12px;margin:8px 0;";
+
+      const titulo = document.createElement("strong");
+      titulo.textContent = p.cerda + " — " + p.fecha;
+
+      const detalle = document.createElement("p");
+      detalle.textContent =
+        "Vivos: " + p.vivos +
+        " | Muertos: " + p.muertos +
+        " | Requieren atención: " + p.atencion;
+
+      const observaciones = document.createElement("p");
+      observaciones.textContent = "Observaciones: " + (p.observaciones || "Ninguna");
+
+      tarjeta.append(titulo, detalle, observaciones);
+      lista.appendChild(tarjeta);
+    });
+  }
+
+  formulario.addEventListener("submit", function (evento) {
+    evento.preventDefault();
+
+    const registro = {
+      cerda: document.getElementById("parto-cerda").value.trim(),
+      fecha: document.getElementById("parto-fecha").value,
+      vivos: Number(document.getElementById("parto-vivos").value),
+      muertos: Number(document.getElementById("parto-muertos").value),
+      atencion: Number(document.getElementById("parto-atencion").value),
+      observaciones: document.getElementById("parto-observaciones").value.trim()
+    };
+
+    if (!registro.cerda || !registro.fecha) {
+      mensaje.textContent = "Completa la identificación y la fecha del parto.";
+      return;
+    }
+
+    if (registro.atencion > registro.vivos) {
+      mensaje.textContent = "Los lechones que requieren atención no pueden superar los nacidos vivos.";
+      return;
+    }
+
+    try {
+      const registros = leerPartos();
+      registros.push(registro);
+      localStorage.setItem(clave, JSON.stringify(registros));
+      formulario.reset();
+      document.getElementById("parto-vivos").value = 0;
+      document.getElementById("parto-muertos").value = 0;
+      document.getElementById("parto-atencion").value = 0;
+      mensaje.textContent = "Registro de parto guardado correctamente en este dispositivo.";
+      mostrarPartos();
+    } catch (e) {
+      mensaje.textContent = "No se pudo guardar. Revisa el almacenamiento disponible del navegador.";
+    }
+  });
+
+  mostrarPartos();
+})();
+</script>
+<!-- FIN MODULO REGISTRO DE PARTOS -->body>
 </html>
