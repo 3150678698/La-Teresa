@@ -657,5 +657,123 @@ actualizarGestacion();
   mostrar();
 })();
 </script>
-<!-- FIN MODULO LACTANCIA Y DESTETE -->body>
+<!-- FIN MODULO LACTANCIA Y DESTETE -->
+<section id="alimentacion" style="max-width:900px;margin:24px auto;padding:20px;background:#fff;color:#111;border:1px solid #ddd;border-radius:14px;font-family:Arial,sans-serif">
+  <h2>🍽️ Alimentación por etapa</h2>
+  <p>LA TERESA · Registro de consumo y costos</p>
+
+  <form id="form-alimentacion">
+    <label>Fecha</label>
+    <input id="ali-fecha" type="date" required style="display:block;width:100%;padding:10px;margin:6px 0 14px">
+
+    <label>Etapa productiva</label>
+    <select id="ali-etapa" required style="display:block;width:100%;padding:10px;margin:6px 0 14px">
+      <option value="">Selecciona una etapa</option>
+      <option>Gestación</option>
+      <option>Lactancia</option>
+      <option>Preinicio</option>
+      <option>Inicio</option>
+      <option>Levante</option>
+      <option>Engorde</option>
+    </select>
+
+    <label>Cantidad de animales alimentados</label>
+    <input id="ali-animales" type="number" min="1" required placeholder="Ej. 10" style="display:block;width:100%;padding:10px;margin:6px 0 14px">
+
+    <label>Nombre del concentrado</label>
+    <input id="ali-concentrado" required placeholder="Ej. Italcol" style="display:block;width:100%;padding:10px;margin:6px 0 14px">
+
+    <label>Consumo total en kilogramos</label>
+    <input id="ali-kg" type="number" min="0.01" step="0.01" required placeholder="Ej. 25" style="display:block;width:100%;padding:10px;margin:6px 0 14px">
+
+    <label>Precio por kilogramo (COP)</label>
+    <input id="ali-precio" type="number" min="0" step="0.01" required placeholder="Ej. 2500" style="display:block;width:100%;padding:10px;margin:6px 0 14px">
+
+    <label>Observaciones</label>
+    <textarea id="ali-observaciones" placeholder="Novedades o comentarios" style="display:block;width:100%;padding:10px;margin:6px 0 14px"></textarea>
+
+    <p><strong>Costo total estimado: <span id="ali-total">$0</span> COP</strong></p>
+    <button type="submit" style="background:#111;color:#fff;border:0;border-radius:8px;padding:12px 18px">Guardar registro</button>
+  </form>
+
+  <hr style="margin:24px 0">
+  <h3>Historial de alimentación</h3>
+  <div id="ali-historial">Todavía no hay registros.</div>
+</section>
+
+<script>
+(function () {
+  const clave = "lateresa_alimentacion_v1";
+  const formulario = document.getElementById("form-alimentacion");
+  const kg = document.getElementById("ali-kg");
+  const precio = document.getElementById("ali-precio");
+  const total = document.getElementById("ali-total");
+  const pesos = n => new Intl.NumberFormat("es-CO", {
+    style: "currency", currency: "COP", maximumFractionDigits: 0
+  }).format(n);
+
+  document.getElementById("ali-fecha").value =
+    new Date().toLocaleDateString("en-CA");
+
+  function registros() {
+    try { return JSON.parse(localStorage.getItem(clave) || "[]"); }
+    catch (e) { return []; }
+  }
+
+  function actualizarTotal() {
+    total.textContent = pesos((Number(kg.value) || 0) * (Number(precio.value) || 0));
+  }
+
+  function mostrar() {
+    const lista = registros();
+    const historial = document.getElementById("ali-historial");
+    if (!lista.length) {
+      historial.textContent = "Todavía no hay registros.";
+      return;
+    }
+    historial.replaceChildren();
+    lista.slice().reverse().forEach(r => {
+      const tarjeta = document.createElement("div");
+      tarjeta.style.cssText = "border:1px solid #ddd;border-radius:10px;padding:12px;margin:10px 0";
+      const titulo = document.createElement("strong");
+      titulo.textContent = r.fecha + " · " + r.etapa;
+      const detalle = document.createElement("p");
+      detalle.textContent = r.animales + " animales · " + r.concentrado +
+        " · " + r.kg + " kg · " + pesos(r.kg * r.precio);
+      const nota = document.createElement("p");
+      nota.textContent = r.observaciones || "Sin observaciones";
+      tarjeta.append(titulo, detalle, nota);
+      historial.appendChild(tarjeta);
+    });
+  }
+
+  kg.addEventListener("input", actualizarTotal);
+  precio.addEventListener("input", actualizarTotal);
+
+  formulario.addEventListener("submit", function (e) {
+    e.preventDefault();
+    const r = {
+      fecha: document.getElementById("ali-fecha").value,
+      etapa: document.getElementById("ali-etapa").value,
+      animales: Number(document.getElementById("ali-animales").value),
+      concentrado: document.getElementById("ali-concentrado").value.trim(),
+      kg: Number(kg.value),
+      precio: Number(precio.value),
+      observaciones: document.getElementById("ali-observaciones").value.trim()
+    };
+    const lista = registros();
+    lista.push(r);
+    localStorage.setItem(clave, JSON.stringify(lista));
+    formulario.reset();
+    document.getElementById("ali-fecha").value = new Date().toLocaleDateString("en-CA");
+    actualizarTotal();
+    mostrar();
+    alert("Registro de alimentación guardado.");
+  });
+
+  actualizarTotal();
+  mostrar();
+})();
+</script>
+body>
 </html>
