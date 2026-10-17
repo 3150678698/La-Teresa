@@ -302,6 +302,88 @@ renderModules();
 renderForm();
 renderRecords();
 </script>
-</body>
+</<!-- CONTROL DE GESTACIÓN LA TERESA -->
+<section id="tabla-gestacion" style="padding:16px;font-family:Arial;color:#111;background:#fff;border:1px solid #ddd;border-radius:12px;margin:12px;">
+  <h2>Control de gestación porcina</h2>
+  <p>Seguimiento de inseminaciones y próximos partos.</p>
+
+  <button onclick="actualizarGestacion()" style="padding:10px;background:#111;color:white;border-radius:8px;">
+    Actualizar tabla
+  </button>
+
+  <div id="gestacion-contenido" style="overflow-x:auto;margin-top:12px;"></div>
+</section>
+
+<script>
+function actualizarGestacion() {
+  const contenedor = document.getElementById("gestacion-contenido");
+
+  try {
+    const registros = typeof readData === "function" ? readData() : [];
+    const lista = Array.isArray(registros) ? registros : [];
+
+    const inseminaciones = lista.filter(r =>
+      String(r.area || "").toLowerCase() === "porcicultura" &&
+      String(r.kind || "").toLowerCase().includes("insemin") &&
+      r.values && r.values.fecha
+    );
+
+    if (!inseminaciones.length) {
+      contenedor.innerHTML =
+        "<p>No hay inseminaciones registradas todavía. Registra una inseminación en Porcicultura y actualiza la tabla.</p>";
+      return;
+    }
+
+    const filas = inseminaciones.map(r => {
+      const v = r.values;
+      const cerda = v.cerda || v.identificacion || v.idCerda || v.id || "Sin identificación";
+
+      const fecha = new Date(v.fecha + "T12:00:00");
+      const parto = new Date(fecha);
+      parto.setDate(parto.getDate() + 114);
+
+      const hoy = new Date();
+      hoy.setHours(12, 0, 0, 0);
+
+      const dias = Math.ceil((parto - hoy) / 86400000);
+
+      let estado = "En seguimiento";
+      if (dias < 0) estado = "Fecha estimada vencida";
+      else if (dias <= 7) estado = "Parto próximo";
+
+      return `
+        <tr>
+          <td style="padding:8px;border:1px solid #ddd;">${cerda}</td>
+          <td style="padding:8px;border:1px solid #ddd;">${v.fecha}</td>
+          <td style="padding:8px;border:1px solid #ddd;">${parto.toLocaleDateString("es-CO")}</td>
+          <td style="padding:8px;border:1px solid #ddd;">
+            ${dias < 0 ? "Hace " + Math.abs(dias) + " días" : dias + " días"}
+          </td>
+          <td style="padding:8px;border:1px solid #ddd;">${estado}</td>
+        </tr>`;
+    }).join("");
+
+    contenedor.innerHTML = `
+      <table style="border-collapse:collapse;min-width:650px;width:100%;font-size:13px;">
+        <thead>
+          <tr>
+            <th style="padding:8px;border:1px solid #ddd;">Identificación</th>
+            <th style="padding:8px;border:1px solid #ddd;">Inseminación</th>
+            <th style="padding:8px;border:1px solid #ddd;">Parto estimado</th>
+            <th style="padding:8px;border:1px solid #ddd;">Días restantes</th>
+            <th style="padding:8px;border:1px solid #ddd;">Estado</th>
+          </tr>
+        </thead>
+        <tbody>${filas}</tbody>
+      </table>`;
+  } catch (error) {
+    contenedor.innerHTML =
+      "<p>No se pudieron leer los registros. Tus datos no se han borrado.</p>";
+  }
+}
+
+actualizarGestacion();
+</script>
+<!-- FIN CONTROL DE GESTACIÓN -->body>
 </html>
 
