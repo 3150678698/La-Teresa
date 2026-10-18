@@ -1083,5 +1083,60 @@ const etapa = document.getElementById("laTeresaInvEtapa").value;
   mostrar();
 })();
 </script>
+
+<section id="copias-seguridad" style="padding:20px;max-width:900px;margin:20px auto;border:1px solid #ddd;border-radius:12px;font-family:Arial,sans-serif;">
+  <h2>Copias de seguridad - LA TERESA</h2>
+  <p>Descarga y guarda una copia de los registros de la finca.</p>
+  <button type="button" id="descargarRespaldoTeresa"
+    style="background:#111;color:white;border:0;border-radius:8px;padding:14px;">
+    Descargar copia de seguridad
+  </button>
+  <p id="estadoRespaldoTeresa" style="font-size:13px;"></p>
+</section>
+
+<script>
+(function () {
+  const boton = document.getElementById("descargarRespaldoTeresa");
+  const estado = document.getElementById("estadoRespaldoTeresa");
+  if (!boton) return;
+
+  boton.addEventListener("click", function () {
+    try {
+      const datos = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const clave = localStorage.key(i);
+        datos[clave] = localStorage.getItem(clave);
+      }
+
+      const respaldo = {
+        aplicacion: "LA TERESA",
+        fecha: new Date().toISOString(),
+        origen: location.origin,
+        registros: datos
+      };
+
+      const archivo = new Blob(
+        [JSON.stringify(respaldo, null, 2)],
+        { type: "application/json" }
+      );
+
+      const url = URL.createObjectURL(archivo);
+      const enlace = document.createElement("a");
+      enlace.href = url;
+      enlace.download = "LA_TERESA_RESPALDO_" +
+        new Date().toISOString().slice(0, 10) + ".json";
+
+      document.body.appendChild(enlace);
+      enlace.click();
+      enlace.remove();
+
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      estado.textContent = "Se solicitó la descarga. Revisa los archivos descargados.";
+    } catch (error) {
+      estado.textContent = "No se pudo generar la copia: " + error.message;
+    }
+  });
+})();
+</script>
 body>
 </html>
