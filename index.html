@@ -939,5 +939,148 @@ actualizarGestacion();
   mostrar();
 })();
 </script>
+
+<section id="costos-alimentacion" style="padding:20px;max-width:900px;margin:20px auto;font-family:Arial,sans-serif;color:#222;border:1px solid #ddd;border-radius:12px;">
+  <h2>Costos de alimentación</h2>
+  <p>Registro de compras y gastos de concentrado de la finca.</p>
+
+  <form id="laTeresaCostosForm">
+    <label>Fecha de compra</label>
+    <input id="laTeresaCostoFecha" type="date" required style="display:block;width:100%;padding:10px;margin:6px 0 14px;">
+
+    <label>Especie</label>
+    <select id="laTeresaCostoEspecie" style="display:block;width:100%;padding:10px;margin:6px 0 14px;">
+      <option>Porcinos</option>
+      <option>Bovinos</option>
+      <option>Gallinas</option>
+      <option>Peces</option>
+    </select>
+
+    <label>Etapa productiva</label>
+    <select id="laTeresaCostoEtapa" style="display:block;width:100%;padding:10px;margin:6px 0 14px;">
+      <option>Gestación</option>
+      <option>Lactancia</option>
+      <option>Preinicio</option>
+      <option>Inicio</option>
+      <option>Levante</option>
+      <option>Engorde</option>
+      <option>No aplica</option>
+    </select>
+
+    <label>Nombre del concentrado o alimento</label>
+    <input id="laTeresaCostoAlimento" required maxlength="100" placeholder="Ej. Concentrado de engorde" style="display:block;width:100%;padding:10px;margin:6px 0 14px;">
+
+    <label>Proveedor</label>
+    <input id="laTeresaCostoProveedor" maxlength="100" placeholder="Nombre del proveedor" style="display:block;width:100%;padding:10px;margin:6px 0 14px;">
+
+    <label>Cantidad comprada (kg)</label>
+    <input id="laTeresaCostoKilos" type="number" min="0.01" step="0.01" required placeholder="Ej. 100" style="display:block;width:100%;padding:10px;margin:6px 0 14px;">
+
+    <label>Valor total pagado (COP)</label>
+    <input id="laTeresaCostoValor" type="number" min="0" step="1" required placeholder="Ej. 250000" style="display:block;width:100%;padding:10px;margin:6px 0 14px;">
+
+    <label>Observaciones</label>
+    <textarea id="laTeresaCostoObs" maxlength="500" style="display:block;width:100%;padding:10px;margin:6px 0 14px;"></textarea>
+
+    <button type="submit" style="background:#222;color:white;padding:12px 18px;border:0;border-radius:8px;">Guardar compra</button>
+  </form>
+
+  <h3>Total acumulado en alimentación</h3>
+  <p id="laTeresaCostoTotal" style="font-size:22px;font-weight:bold;">$0 COP</p>
+
+  <h3>Historial de compras</h3>
+  <div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;font-size:14px;">
+      <thead>
+        <tr>
+          <th style="padding:8px;border-bottom:1px solid #ccc;">Fecha</th>
+          <th style="padding:8px;border-bottom:1px solid #ccc;">Especie / etapa</th>
+          <th style="padding:8px;border-bottom:1px solid #ccc;">Alimento / proveedor</th>
+          <th style="padding:8px;border-bottom:1px solid #ccc;">Kg</th>
+          <th style="padding:8px;border-bottom:1px solid #ccc;">Valor</th>
+        </tr>
+      </thead>
+      <tbody id="laTeresaCostoHistorial"></tbody>
+    </table>
+  </div>
+  <p style="font-size:12px;color:#666;">Los registros se guardan en este navegador y dispositivo.</p>
+</section>
+
+<script>
+(function () {
+  const clave = "lateresa_costos_alimentacion_v1";
+  const form = document.getElementById("laTeresaCostosForm");
+  if (!form || form.dataset.iniciado === "si") return;
+  form.dataset.iniciado = "si";
+
+  const obtener = () => {
+    try {
+      const d = JSON.parse(localStorage.getItem(clave) || "[]");
+      return Array.isArray(d) ? d : [];
+    } catch (e) {
+      return [];
+    }
+  };
+
+  const seguro = v => String(v ?? "").replace(/[&<>"']/g, c => ({
+    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+  }[c]));
+
+  const pesos = v => "$" + Number(v || 0).toLocaleString("es-CO") + " COP";
+
+  function mostrar() {
+    const registros = obtener();
+    const total = registros.reduce((s, r) => s + Number(r.valor || 0), 0);
+    document.getElementById("laTeresaCostoTotal").textContent = pesos(total);
+
+    document.getElementById("laTeresaCostoHistorial").innerHTML =
+      registros.slice().reverse().map(r => `
+        <tr>
+          <td style="padding:8px;border-bottom:1px solid #eee;">${seguro(r.fecha)}</td>
+          <td style="padding:8px;border-bottom:1px solid #eee;">${seguro(r.especie)} / ${seguro(r.etapa)}</td>
+          <td style="padding:8px;border-bottom:1px solid #eee;">${seguro(r.alimento)} / ${seguro(r.proveedor)}</td>
+          <td style="padding:8px;border-bottom:1px solid #eee;">${Number(r.kilos).toLocaleString("es-CO")}</td>
+          <td style="padding:8px;border-bottom:1px solid #eee;">${pesos(r.valor)}</td>
+        </tr>
+      `).join("") || '<tr><td colspan="5" style="padding:10px;">Todavía no hay compras registradas.</td></tr>';
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const registro = {
+      fecha: document.getElementById("laTeresaCostoFecha").value,
+      especie: document.getElementById("laTeresaCostoEspecie").value,
+      etapa: document.getElementById("laTeresaCostoEtapa").value,
+      alimento: document.getElementById("laTeresaCostoAlimento").value.trim(),
+      proveedor: document.getElementById("laTeresaCostoProveedor").value.trim(),
+      kilos: Number(document.getElementById("laTeresaCostoKilos").value),
+      valor: Number(document.getElementById("laTeresaCostoValor").value),
+      obs: document.getElementById("laTeresaCostoObs").value.trim()
+    };
+
+    if (!registro.fecha || !registro.alimento || registro.kilos <= 0 || registro.valor < 0) {
+      alert("Revisa la fecha, el alimento, los kilos y el valor.");
+      return;
+    }
+
+    const registros = obtener();
+    registros.push(registro);
+
+    try {
+      localStorage.setItem(clave, JSON.stringify(registros));
+    } catch (error) {
+      alert("No se pudo guardar. Revisa el espacio disponible del navegador.");
+      return;
+    }
+
+    form.reset();
+    mostrar();
+    alert("Compra de alimento guardada correctamente.");
+  });
+
+  mostrar();
+})();
+</script>
 body>
 </html>
