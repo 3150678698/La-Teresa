@@ -834,6 +834,7 @@ actualizarGestacion();
         <tr>
           <th style="padding:8px;border-bottom:1px solid #ccc;">Fecha</th>
           <th style="padding:8px;border-bottom:1px solid #ccc;">Especie</th>
+          <th>Etapa</th>
           <th style="padding:8px;border-bottom:1px solid #ccc;">Movimiento</th>
           <th style="padding:8px;border-bottom:1px solid #ccc;">Cantidad</th>
           <th style="padding:8px;border-bottom:1px solid #ccc;">Lote / observaciones</th>
@@ -882,6 +883,7 @@ actualizarGestacion();
         <tr>
           <td style="padding:8px;border-bottom:1px solid #eee;">${seguro(r.fecha)}</td>
           <td style="padding:8px;border-bottom:1px solid #eee;">${seguro(r.especie)}</td>
+          <td style="padding:8px;border-bottom:1px solid #eee;">${seguro(r.etapa || "No aplica")}</td>
           <td style="padding:8px;border-bottom:1px solid #eee;">${seguro(r.tipo)}</td>
           <td style="padding:8px;border-bottom:1px solid #eee;">${r.cantidad}</td>
           <td style="padding:8px;border-bottom:1px solid #eee;">${seguro(r.lote)} ${seguro(r.obs)}</td>
@@ -914,6 +916,7 @@ actualizarGestacion();
 
     registros.push({
       especie,
+      etapa,
       tipo,
       fecha,
       cantidad,
