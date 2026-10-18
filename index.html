@@ -301,7 +301,7 @@ renderModules();
 renderForm();
 renderRecords();
 </script>
- </<section id="tabla-gestacion" style="padding:16px;font-family:Arial;color:#111;background:#fff;border:1px solid #ddd;border-radius:12px;margin:12px;">
+<section id="tabla-gestacion" style="padding:16px;font-family:Arial;color:#111;background:#fff;border:1px solid #ddd;border-radius:12px;margin:12px;">
   <h2>🐷 Control de gestación</h2>
   <p>Seguimiento de inseminaciones y próximos partos.</p>
   <button onclick="actualizarGestacion()" style="padding:10px;background:#111;color:white;border-radius:8px;">
@@ -893,7 +893,8 @@ actualizarGestacion();
 
   formulario.addEventListener("submit", function (e) {
     e.preventDefault();
-    const especie = document.getElementById("laTeresaInvEspecie").const etapa = document.getElementById("laTeresaInvEtapa").value;
+    const especie = document.getElementById("laTeresaInvEspecie").value;
+const etapa = document.getElementById("laTeresaInvEtapa").value;
     const tipo = document.getElementById("laTeresaInvTipo").value;
     const fecha = document.getElementById("laTeresaInvFecha").value;
     const cantidad = Number(document.getElementById("laTeresaInvCantidad").value);
