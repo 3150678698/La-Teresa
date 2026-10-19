@@ -1138,5 +1138,137 @@ const etapa = document.getElementById("laTeresaInvEtapa").value;
   });
 })();
 </script>
+
+<section id="sanidad-veterinaria" style="padding:16px;margin:16px 0;background:#fff;border:1px solid #ddd;border-radius:12px;color:#111;">
+  <h2>Sanidad Veterinaria</h2>
+  <p>Registro sanitario de los animales de La Teresa.</p>
+
+  <form id="formSanidadTeresa">
+    <label for="sanidadFecha">Fecha de atención</label>
+    <input id="sanidadFecha" type="date" required style="display:block;width:100%;padding:10px;margin:6px 0 12px;box-sizing:border-box;">
+
+    <label for="sanidadEspecie">Especie</label>
+    <select id="sanidadEspecie" required style="display:block;width:100%;padding:10px;margin:6px 0 12px;">
+      <option value="">Seleccionar</option>
+      <option>Porcinos</option>
+      <option>Bovinos</option>
+      <option>Gallinas</option>
+      <option>Peces</option>
+    </select>
+
+    <label for="sanidadAnimal">Identificación del animal o lote</label>
+    <input id="sanidadAnimal" type="text" placeholder="Ej. Cerda C-01 o lote L-03" required style="display:block;width:100%;padding:10px;margin:6px 0 12px;box-sizing:border-box;">
+
+    <label for="sanidadTipo">Tipo de atención</label>
+    <select id="sanidadTipo" required style="display:block;width:100%;padding:10px;margin:6px 0 12px;">
+      <option value="">Seleccionar</option>
+      <option>Vacunación</option>
+      <option>Desparasitación</option>
+      <option>Enfermedad</option>
+      <option>Tratamiento</option>
+      <option>Control veterinario</option>
+      <option>Otro</option>
+    </select>
+
+    <label for="sanidadDetalle">Diagnóstico, vacuna o tratamiento</label>
+    <textarea id="sanidadDetalle" rows="3" placeholder="Nombre del producto y observaciones" required style="display:block;width:100%;padding:10px;margin:6px 0 12px;box-sizing:border-box;"></textarea>
+
+    <label for="sanidadResponsable">Veterinario o responsable</label>
+    <input id="sanidadResponsable" type="text" placeholder="Nombre del responsable" style="display:block;width:100%;padding:10px;margin:6px 0 12px;box-sizing:border-box;">
+
+    <label for="sanidadProxima">Próximo control</label>
+    <input id="sanidadProxima" type="date" style="display:block;width:100%;padding:10px;margin:6px 0 12px;box-sizing:border-box;">
+
+    <label for="sanidadCosto">Costo en pesos colombianos</label>
+    <input id="sanidadCosto" type="number" min="0" step="1" placeholder="0" style="display:block;width:100%;padding:10px;margin:6px 0 12px;box-sizing:border-box;">
+
+    <button type="submit" style="background:#111;color:white;border:0;border-radius:8px;padding:13px;width:100%;">Guardar atención</button>
+  </form>
+
+  <p id="sanidadMensaje" role="status"></p>
+  <h3>Historial sanitario</h3>
+  <div id="listaSanidadTeresa"></div>
+</section>
+
+<script>
+(function () {
+  const clave = "laTeresa_sanidad_v1";
+  const formulario = document.getElementById("formSanidadTeresa");
+  const lista = document.getElementById("listaSanidadTeresa");
+  const mensaje = document.getElementById("sanidadMensaje");
+  if (!formulario || !lista || !mensaje) return;
+
+  function leer() {
+    try {
+      const datos = JSON.parse(localStorage.getItem(clave) || "[]");
+      return Array.isArray(datos) ? datos : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function mostrar() {
+    const registros = leer();
+    lista.replaceChildren();
+
+    if (registros.length === 0) {
+      lista.textContent = "Todavía no hay atenciones registradas.";
+      return;
+    }
+
+    registros.slice().reverse().forEach(function (r) {
+      const tarjeta = document.createElement("article");
+      tarjeta.style.cssText = "padding:12px;margin:10px 0;border:1px solid #ddd;border-radius:8px;";
+
+      const titulo = document.createElement("strong");
+      titulo.textContent = r.fecha + " · " + r.especie + " · " + r.animal;
+      tarjeta.appendChild(titulo);
+
+      [
+        "Atención: " + r.tipo,
+        "Detalle: " + r.detalle,
+        "Responsable: " + (r.responsable || "No indicado"),
+        "Próximo control: " + (r.proxima || "No programado"),
+        "Costo: $" + Number(r.costo || 0).toLocaleString("es-CO")
+      ].forEach(function (texto) {
+        const linea = document.createElement("p");
+        linea.textContent = texto;
+        tarjeta.appendChild(linea);
+      });
+
+      lista.appendChild(tarjeta);
+    });
+  }
+
+  formulario.addEventListener("submit", function (evento) {
+    evento.preventDefault();
+
+    const registro = {
+      fecha: document.getElementById("sanidadFecha").value,
+      especie: document.getElementById("sanidadEspecie").value,
+      animal: document.getElementById("sanidadAnimal").value.trim(),
+      tipo: document.getElementById("sanidadTipo").value,
+      detalle: document.getElementById("sanidadDetalle").value.trim(),
+      responsable: document.getElementById("sanidadResponsable").value.trim(),
+      proxima: document.getElementById("sanidadProxima").value,
+      costo: document.getElementById("sanidadCosto").value || "0"
+    };
+
+    const registros = leer();
+    registros.push(registro);
+
+    try {
+      localStorage.setItem(clave, JSON.stringify(registros));
+      formulario.reset();
+      mensaje.textContent = "Atención veterinaria guardada correctamente.";
+      mostrar();
+    } catch (error) {
+      mensaje.textContent = "No se pudo guardar. Verifica el espacio disponible en el navegador.";
+    }
+  });
+
+  mostrar();
+})();
+</script>
 body>
 </html>
