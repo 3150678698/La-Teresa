@@ -173,10 +173,10 @@ footer{text-align:center;padding:25px;color:#666;font-size:12px}
 <p>GESTIÓN AGROPECUARIA · FINCA</p>
 </header>
 <main>
-<h2>Panel principal</h2>
-<p class="muted">Selecciona el área que deseas administrar.</p>
+<h2 id="mainTitle">Panel principal</h2>
+<p class="muted" id="mainDescription">Selecciona el área que deseas administrar.</p>
 <div class="modules" id="modules"></div>
-<section class="panel">
+<section class="panel" id="moduleScreen">
 <h2 id="sectionTitle">Porcicultura</h2>
 <p class="muted" id="sectionDescription">Control reproductivo y productivo de los cerdos.</p>
 <form id="recordForm">
@@ -228,9 +228,11 @@ b.onclick=()=>{
  renderModules();
  renderForm();
  renderRecords();
- $("moduleScreen").style.display="block";
- $("modules").style.display="none";
- $("backToMenu").style.display="block";
+$("moduleScreen").style.display="block";
+$("modules").style.display="none";
+$("mainTitle").style.display="none";
+$("mainDescription").style.display="none";
+$("backToMenu").style.display="block";
 };
  });
 }
@@ -259,6 +261,8 @@ function renderForm(){
 $("backToMenu").onclick=()=>{
  $("moduleScreen").style.display="none";
  $("modules").style.display="grid";
+ $("mainTitle").style.display="block";
+ $("mainDescription").style.display="block";
  $("backToMenu").style.display="none";
 };
 $("moduleScreen").style.display="none";
