@@ -191,7 +191,7 @@ footer{text-align:center;padding:25px;color:#666;font-size:12px}
 <button class="primary" type="submit">Guardar registro</button>
 </form>
 </section>
-<section class="panel">
+<button type="button" id="backToMenu" style="margin-bottom:15px;display:none;">← Volver al menú principal</button>
 <h2>Registros guardados</h2>
 <p class="muted">Consulta los registros de este módulo en este dispositivo.</p>
 <div id="records"></div>
@@ -223,7 +223,15 @@ function renderModules(){
  `<button class="module ${a[0]===area?"active":""}" data-area="${a[0]}"><span>${a[1]}</span>${a[0]}<small style="display:block;font-weight:normal;margin-top:6px">${a[2]}</small></button>`
  ).join("");
  document.querySelectorAll("[data-area]").forEach(b=>{
- b.onclick=()=>{area=b.dataset.area;renderModules();renderForm();renderRecords()};
+b.onclick=()=>{
+ area=b.dataset.area;
+ renderModules();
+ renderForm();
+ renderRecords();
+ $("moduleScreen").style.display="block";
+ $("modules").style.display="none";
+ $("backToMenu").style.display="block";
+};
  });
 }
 const fields={
@@ -248,6 +256,13 @@ function renderForm(){
  $("kind").onchange=drawFields;
  drawFields();
 }
+$("backToMenu").onclick=()=>{
+ $("moduleScreen").style.display="none";
+ $("modules").style.display="grid";
+ $("backToMenu").style.display="none";
+};
+$("moduleScreen").style.display="none";
+$("backToMenu").style.display="none";
 function drawFields(){
  const kind=$("kind").value;
  const schema=(fields[area].find(k=>k[0]===kind)||fields[area][0])[1];
