@@ -218,24 +218,26 @@ function readData(){
 function saveData(data){
  localStorage.setItem("lateresa_registros",JSON.stringify(data));
 }
+
 function renderModules(){
  $("modules").innerHTML=areas.map(a=>
  `<button class="module ${a[0]===area?"active":""}" data-area="${a[0]}"><span>${a[1]}</span>${a[0]}<small style="display:block;font-weight:normal;margin-top:6px">${a[2]}</small></button>`
  ).join("");
+
  document.querySelectorAll("[data-area]").forEach(b=>{
-b.onclick=()=>{
- area=b.dataset.area;
- renderModules();
- renderForm();
- renderRecords();
-$("moduleScreen").style.display="block";
-$("modules").style.display="none";
-$("mainTitle").style.display="none";
-$("mainDescription").style.display="none";
-$("backToMenu").style.display="block";
-};
+  b.onclick=()=>{
+   area=b.dataset.area;
+   renderModules();
+   renderSubmodules();
+   $("moduleScreen").style.display="block";
+   $("modules").style.display="none";
+   $("mainTitle").style.display="none";
+   $("mainDescription").style.display="none";
+   $("backToMenu").style.display="block";
+  };
  });
 }
+
 const fields={
  "Porcicultura":[
  ["Cerda",[["identificacion","Identificación / arete","text"],["raza","Raza","text"],["nacimiento","Fecha de nacimiento","date"],["estado","Estado reproductivo","select:Vacía|Gestante|Lactante|Reemplazo"],["observaciones","Observaciones","textarea"]]],
