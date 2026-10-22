@@ -249,10 +249,11 @@ function renderModules(){
 
  document.querySelectorAll("[data-area]").forEach(b=>{
   b.onclick=()=>{
-   area=b.dataset.area;
-   renderModules();
-   renderSubmodules();
-   $("moduleScreen").style.display="block";
+  area=b.dataset.area;
+renderModules();
+renderSubmodules();
+renderResumenFinanzas();
+$("moduleScreen").style.display="block";
    $("modules").style.display="none";
    $("mainTitle").style.display="none";
    $("mainDescription").style.display="none";
