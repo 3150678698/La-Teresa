@@ -176,40 +176,52 @@ footer{text-align:center;padding:25px;color:#666;font-size:12px}
 <h2 id="mainTitle">Panel principal</h2>
 <p class="muted" id="mainDescription">Selecciona el área que deseas administrar.</p>
 <div class="modules" id="modules"></div>
-<div id="submoduleMenu" style="display:none;">
-  <h2 id="submoduleTitle">Selecciona una opción</h2>
-  <p class="muted">Elige el submódulo que deseas administrar.</p>
-  <div class="modules" id="submoduleButtons"></div>
-</div>
-<button type="button" id="backToSubmodules"
-  style="display:none;margin-bottom:15px;">
-  ← Volver a submódulos
-</button>
-<div id="moduleFormContent">
+<section class="panel" id="moduleScreen">
 
-<p class="muted" id="sectionDescription">Control reproductivo y productivo de los cerdos.</p>
-<form id="recordForm">
-<label for="kind">Tipo de registro</label>
-<select id="kind" required>
-<option value="Cerda">Identificación de cerda</option>
-<option value="Inseminación">Inseminación</option>
-<option value="Parto">Parto</option>
-<option value="Lechones">Registro de lechones</option>
-</select>
-<div id="fields"></div>
-<button class="primary" type="submit">Guardar registro</button>
-</form>
-</div>
-</section>
+  <div id="submoduleMenu" style="display:none;">
+    <h2 id="submoduleTitle">Selecciona una opción</h2>
+    <p class="muted">Elige el submódulo que deseas administrar.</p>
+    <div class="modules" id="submoduleButtons"></div>
+  </div>
 
-<button type="button" id="backToMenu" style="margin-bottom:15px;display:none;">← Volver al menú principal</button>
+  <button type="button" id="backToSubmodules"
+    style="display:none;margin-bottom:15px;">
+    ← Volver a submódulos
+  </button>
 
-<div id="recordsSection" style="display:none;">
-  <h2>Registros guardados</h2>
-  <p class="muted">Consulta los registros de este módulo en este dispositivo.</p>
-  <div id="records"></div>
-  <button class="secondary" id="exportBtn" type="button">Exportar copia de seguridad</button>
-</div>
+  <div id="moduleFormContent">
+    <h2 id="sectionTitle">Porcicultura</h2>
+    <p class="muted" id="sectionDescription">
+      Control reproductivo y productivo de los cerdos.
+    </p>
+
+    <form id="recordForm">
+      <label for="kind">Tipo de registro</label>
+      <select id="kind" required>
+        <option value="Cerda">Identificación de cerda</option>
+        <option value="Inseminación">Inseminación</option>
+        <option value="Parto">Parto</option>
+        <option value="Lechones">Registro de lechones</option>
+      </select>
+      <div id="fields"></div>
+      <button class="primary" type="submit">Guardar registro</button>
+    </form>
+  </div>
+
+  <button type="button" id="backToMenu"
+    style="margin-bottom:15px;display:none;">
+    ← Volver al menú principal
+  </button>
+
+  <div id="recordsSection" style="display:none;">
+    <h2>Registros guardados</h2>
+    <p class="muted">Consulta los registros de este módulo en este dispositivo.</p>
+    <div id="records"></div>
+    <button class="secondary" id="exportBtn" type="button">
+      Exportar copia de seguridad
+    </button>
+  </div>
+
 </section>
 </main>
 <footer>LA TERESA · Administración de finca</footer>
