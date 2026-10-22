@@ -272,7 +272,16 @@ const fields={
  "Avicultura":[["Lote de aves",[["identificacion","Identificación del lote","text"],["cantidad","Cantidad de aves","number"],["fecha","Fecha de ingreso","date"],["produccion","Producción de huevos / unidades","number"],["observaciones","Observaciones","textarea"]]]],
  "Piscicultura":[["Estanque / lote",[["identificacion","Estanque o lote","text"],["especie","Especie","text"],["cantidad","Cantidad sembrada","number"],["fecha","Fecha de siembra","date"],["observaciones","Observaciones","textarea"]]]],
  "Inventario":[["Insumo",[["identificacion","Nombre del insumo","text"],["cantidad","Cantidad","number"],["unidad","Unidad de medida","select:Kilogramos|Bultos|Litros|Unidades|Dosis"],["fecha","Fecha de registro","date"],["observaciones","Observaciones","textarea"]]]],
- "Finanzas":[["Movimiento",[["identificacion","Concepto","text"],["tipo","Tipo de movimiento","select:Ingreso|Gasto"],["cantidad","Valor en pesos colombianos","number"],["fecha","Fecha","date"],["observaciones","Observaciones","textarea"]]]],
+  "Finanzas":[["Movimiento",[
+  ["identificacion","Concepto","text"],
+  ["tipo","Tipo de movimiento","select:Ingreso|Gasto"],
+  ["categoria","Categoría","select:Venta de animales|Venta de productos|Alimentación|Medicamentos y sanidad|Nómina y mano de obra|Servicios públicos|Transporte|Mantenimiento|Impuestos|Compra de animales|Otros"],
+  ["actividad","Actividad productiva","select:General|Porcicultura|Ganadería|Avicultura|Piscicultura"],
+  ["cantidad","Valor en pesos colombianos (COP)","number"],
+  ["fecha","Fecha del movimiento","date"],
+  ["porcentaje","Porcentaje de distribución del gasto compartido","number"],
+  ["observaciones","Observaciones","textarea"]
+ ]]],
  "Actividades":[["Actividad",[["identificacion","Nombre de la actividad","text"],["fecha","Fecha programada","date"],["estado","Estado","select:Pendiente|En proceso|Realizada"],["observaciones","Responsable / notas","textarea"]]]]
 };
 function renderSubmodules(){
