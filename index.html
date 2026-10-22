@@ -176,8 +176,17 @@ footer{text-align:center;padding:25px;color:#666;font-size:12px}
 <h2 id="mainTitle">Panel principal</h2>
 <p class="muted" id="mainDescription">Selecciona el área que deseas administrar.</p>
 <div class="modules" id="modules"></div>
-<section class="panel" id="moduleScreen">
-<h2 id="sectionTitle">Porcicultura</h2>
+<div id="submoduleMenu" style="display:none;">
+  <h2 id="submoduleTitle">Selecciona una opción</h2>
+  <p class="muted">Elige el submódulo que deseas administrar.</p>
+  <div class="modules" id="submoduleButtons"></div>
+</div>
+<button type="button" id="backToSubmodules"
+  style="display:none;margin-bottom:15px;">
+  ← Volver a submódulos
+</button>
+<div id="moduleFormContent">
+
 <p class="muted" id="sectionDescription">Control reproductivo y productivo de los cerdos.</p>
 <form id="recordForm">
 <label for="kind">Tipo de registro</label>
@@ -190,12 +199,17 @@ footer{text-align:center;padding:25px;color:#666;font-size:12px}
 <div id="fields"></div>
 <button class="primary" type="submit">Guardar registro</button>
 </form>
+</div>
 </section>
+
 <button type="button" id="backToMenu" style="margin-bottom:15px;display:none;">← Volver al menú principal</button>
-<h2>Registros guardados</h2>
-<p class="muted">Consulta los registros de este módulo en este dispositivo.</p>
-<div id="records"></div>
-<button class="secondary" id="exportBtn" type="button">Exportar copia de seguridad</button>
+
+<div id="recordsSection" style="display:none;">
+  <h2>Registros guardados</h2>
+  <p class="muted">Consulta los registros de este módulo en este dispositivo.</p>
+  <div id="records"></div>
+  <button class="secondary" id="exportBtn" type="button">Exportar copia de seguridad</button>
+</div>
 </section>
 </main>
 <footer>LA TERESA · Administración de finca</footer>
@@ -240,10 +254,10 @@ function renderModules(){
 
 const fields={
  "Porcicultura":[
- ["Cerda",[["identificacion","Identificación / arete","text"],["raza","Raza","text"],["nacimiento","Fecha de nacimiento","date"],["estado","Estado reproductivo","select:Vacía|Gestante|Lactante|Reemplazo"],["observaciones","Observaciones","textarea"]]],
- ["Inseminación",[["identificacion","Identificación de la cerda","text"],["fecha","Fecha de inseminación","date"],["verraco","Verraco / código de semen","text"],["servicio","Número de servicio","select:Primero|Segundo|Tercero"],["observaciones","Observaciones","textarea"]]],
- ["Parto",[["identificacion","Identificación de la cerda","text"],["fecha","Fecha del parto","date"],["nacidosVivos","Lechones nacidos vivos","number"],["nacidosMuertos","Lechones nacidos muertos","number"],["momias","Momificados","number"],["observaciones","Observaciones","textarea"]]],
- ["Lechones",[["identificacion","Identificación de la madre / camada","text"],["fecha","Fecha de nacimiento","date"],["cantidad","Cantidad registrada","number"],["peso","Peso promedio (kg)","number"],["observaciones","Observaciones","textarea"]]]
+  ["Cerda",[["identificacion","Identificación / arete","text"],["raza","Raza","text"],["nacimiento","Fecha de nacimiento","date"],["estado","Estado reproductivo","select:Vacía|Gestante|Lactante|Reemplazo"],["observaciones","Observaciones","textarea"]]],
+  ["Inseminación",[["identificacion","Identificación de la cerda","text"],["fecha","Fecha de inseminación","date"],["verraco","Verraco / código de semen","text"],["servicio","Número de servicio","select:Primero|Segundo|Tercero"],["observaciones","Observaciones","textarea"]]],
+  ["Parto",[["identificacion","Identificación de la cerda","text"],["fecha","Fecha del parto","date"],["nacidosVivos","Lechones nacidos vivos","number"],["nacidosMuertos","Lechones nacidos muertos","number"],["momias","Momificados","number"],["observaciones","Observaciones","textarea"]]],
+  ["Lechones",[["identificacion","Identificación de la madre / camada","text"],["fecha","Fecha de nacimiento","date"],["cantidad","Cantidad registrada","number"],["peso","Peso promedio (kg)","number"],["observaciones","Observaciones","textarea"]]]
  ],
  "Ganadería":[["Animal",[["identificacion","Identificación / arete","text"],["tipo","Tipo de animal","select:Vaca|Toro|Novilla|Ternero|Ternera"],["fecha","Fecha de nacimiento","date"],["peso","Peso (kg)","number"],["observaciones","Observaciones","textarea"]]]],
  "Avicultura":[["Lote de aves",[["identificacion","Identificación del lote","text"],["cantidad","Cantidad de aves","number"],["fecha","Fecha de ingreso","date"],["produccion","Producción de huevos / unidades","number"],["observaciones","Observaciones","textarea"]]]],
@@ -251,6 +265,35 @@ const fields={
  "Inventario":[["Insumo",[["identificacion","Nombre del insumo","text"],["cantidad","Cantidad","number"],["unidad","Unidad de medida","select:Kilogramos|Bultos|Litros|Unidades|Dosis"],["fecha","Fecha de registro","date"],["observaciones","Observaciones","textarea"]]]],
  "Finanzas":[["Movimiento",[["identificacion","Concepto","text"],["tipo","Tipo de movimiento","select:Ingreso|Gasto"],["cantidad","Valor en pesos colombianos","number"],["fecha","Fecha","date"],["observaciones","Observaciones","textarea"]]]],
  "Actividades":[["Actividad",[["identificacion","Nombre de la actividad","text"],["fecha","Fecha programada","date"],["estado","Estado","select:Pendiente|En proceso|Realizada"],["observaciones","Responsable / notas","textarea"]]]]
+};
+function renderSubmodules(){
+ const kinds=fields[area]||[];
+ $("submoduleTitle").textContent=area;
+ $("submoduleButtons").innerHTML=kinds.map((k,i)=>
+  `<button type="button" class="module" data-submodule="${i}"><span>📋</span>${k[0]}</button>`
+ ).join("");
+ $("submoduleMenu").style.display="block";
+ $("moduleFormContent").style.display="none";
+ $("backToSubmodules").style.display="none";
+ document.querySelectorAll("[data-submodule]").forEach(b=>{
+  b.onclick=()=>{
+   const selected=kinds[Number(b.dataset.submodule)][0];
+   renderForm();
+   $("kind").value=selected;
+   drawFields();
+   renderRecords();
+   $("submoduleMenu").style.display="none";
+   $("recordsSection").style.display="block";
+   $("moduleFormContent").style.display="block";
+   $("backToSubmodules").style.display="block";
+  };
+ });
+}
+$("backToSubmodules").onclick=()=>{
+ $("moduleFormContent").style.display="none";
+ $("submoduleMenu").style.display="block";
+ $("recordsSection").style.display="none";
+ $("backToSubmodules").style.display="none";
 };
 function renderForm(){
  $("sectionTitle").textContent=area;
@@ -266,7 +309,12 @@ $("backToMenu").onclick=()=>{
  $("mainTitle").style.display="block";
  $("mainDescription").style.display="block";
  $("backToMenu").style.display="none";
+ $("submoduleMenu").style.display="none";
+ $("moduleFormContent").style.display="none";
+$("recordsSection").style.display="none";
+ $("backToSubmodules").style.display="none";
 };
+
 $("moduleScreen").style.display="none";
 $("backToMenu").style.display="none";
 function drawFields(){
