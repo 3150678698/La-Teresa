@@ -392,6 +392,52 @@ $("exportBtn").onclick=()=>{
  a.href=url;a.download="respaldo-la-teresa.json";a.click();
  URL.revokeObjectURL(url);
 };
+function renderResumenFinanzas() {
+  const registros = readData().filter(r => r.area === "Finanzas");
+  const mesActual = new Date().toISOString().slice(0, 7);
+
+  const movimientos = registros.filter(r =>
+    r.kind === "Movimiento" &&
+    (r.values.fecha || "").slice(0, 7) === mesActual
+  );
+
+  let ingresos = 0;
+  let gastos = 0;
+
+  movimientos.forEach(r => {
+    const valor = Number(r.values.cantidad) || 0;
+    if (r.values.tipo === "Ingreso") ingresos += valor;
+    if (r.values.tipo === "Gasto") gastos += valor;
+  });
+
+  const formato = valor =>
+    valor.toLocaleString("es-CO", {
+      style: "currency",
+      currency: "COP",
+      maximumFractionDigits: 0
+    });
+
+  let panel = document.getElementById("resumenFinanzas");
+  if (!panel) {
+    panel = document.createElement("section");
+    panel.id = "resumenFinanzas";
+    panel.style.cssText =
+      "display:none;margin:12px 0;padding:16px;border:1px solid #ddd;border-radius:12px;background:#fff;color:#111;";
+    const pantalla = document.getElementById("moduleScreen");
+    pantalla.prepend(panel);
+  }
+
+  panel.innerHTML = `
+    <h2>💰 Resumen financiero</h2>
+    <p>Mes: ${mesActual}</p>
+    <p><b>Ingresos:</b> ${formato(ingresos)}</p>
+    <p><b>Gastos:</b> ${formato(gastos)}</p>
+    <p><b>Resultado neto:</b> ${formato(ingresos - gastos)}</p>
+    <p style="font-size:13px;color:#666">
+      Valores calculados a partir de los movimientos guardados en Finanzas.
+    </p>
+  `;
+}
 renderModules();
 $("moduleScreen").style.display = "none";
 $("modules").style.display = "grid";
