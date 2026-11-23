@@ -616,9 +616,11 @@ function renderResumenFinanzas() {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  actualizar();
+    actualizar();
 }
 
+renderModules();
+$("moduleScreen").style.display = "none";
 
   panel.innerHTML = `
     <h2>💰 Resumen financiero</h2>
