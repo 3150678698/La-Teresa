@@ -616,23 +616,13 @@ function renderResumenFinanzas() {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-    actualizar();
+      actualizar();
 }
 
 renderModules();
-$("moduleScreen").style.display = "none";
 
-  panel.innerHTML = `
-    <h2>💰 Resumen financiero</h2>
-    <p>Mes: ${mesActual}</p>
-    <p><b>Ingresos:</b> ${formato(ingresos)}</p>
-    <p><b>Gastos:</b> ${formato(gastos)}</p>
-    <p><b>Resultado neto:</b> ${formato(ingresos - gastos)}</p>
-    <p style="font-size:13px;color:#666">
-      Valores calculados a partir de los movimientos guardados en Finanzas.
-    </p>
-  `;
-}
+$("moduleScreen").style.display = "none";
+$("modules").style.display = "grid";
 renderModules();
 $("moduleScreen").style.display = "none";
 $("modules").style.display = "grid";
